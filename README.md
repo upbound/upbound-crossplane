@@ -1,10 +1,10 @@
-# Upbound Universal Crossplane (UXP)
+# Upbound Crossplane (UXP)
 
 <a href="https://upbound.io/uxp">
     <img align="right" style="margin-left: 20px" src="docs/media/logo.png" width=200 />
 </a>
 
-Upbound Universal Crossplane (UXP) is [Upbound's][upbound] official
+Upbound Crossplane (UXP) is [Upbound's][upbound] official
 enterprise-grade distribution of [Crossplane][crossplane]. It's fully compatible
 with upstream Crossplane, open source, capable of connecting to Upbound Cloud
 for real-time dashboard visibility, and maintained by Upbound. It's the easiest
@@ -40,7 +40,7 @@ flag is only a workaround, you will always get the latest stable version of UXP.
 1. Create the namespace to install UXP.
 
    ```console
-   kubectl create namespace upbound-system
+   kubectl create namespace crossplane-system
    ```
 
 1. Add `upbound-stable` chart repository.
@@ -52,7 +52,7 @@ flag is only a workaround, you will always get the latest stable version of UXP.
 1. Install the latest stable version of UXP.
 
    ```console
-   helm install uxp --namespace upbound-system upbound-stable/universal-crossplane --devel
+   helm install uxp --namespace crossplane-system upbound-stable/upbound-crossplane --devel
    ```
 
 ### Upgrade from upstream Crossplane
