@@ -1,10 +1,10 @@
 ---
 name: Feature Request
-about: Help us make Upbound Universal Crossplane more useful
+about: Help us make Upbound Crossplane more useful
 labels: enhancement
 ---
 <!--
-Thank you for helping to improve Upbound Universal Crossplane (UXP)!
+Thank you for helping to improve Upbound Crossplane (UXP)!
 
 Please be sure to search for open issues before raising a new one. We use issues
 for bug reports and feature requests. Please find us at https://slack.crossplane.io

@@ -1,6 +1,0 @@
-apiVersion: pkg.crossplane.io/v1
-kind: Configuration
-metadata:
-  name: getting-started
-spec:
-  package: xpkg.upbound.io/upbound/getting-started:latest

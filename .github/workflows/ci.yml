@@ -9,17 +9,8 @@ on:
   workflow_dispatch: {}
 
 env:
-  # Common versions
-  GO_VERSION: '1.24.3'
-  GOLANGCI_VERSION: 'v1.64.6'
   DOCKER_BUILDX_VERSION: 'v0.8.2'
 
-  # Common users. We can't run a step 'if secrets.AWS_USR != ""' but we can run
-  # a step 'if env.AWS_USR' != ""', so we copy these to succinctly test whether
-  # credentials have been provided before trying to run steps that need them.
-  XPKG_ACCESS_ID: ${{ secrets.XPKG_ACCESS_ID }}
-  XPKG_SPACES_ARTIFACTS_ACCESS_ID: ${{ secrets.XPKG_SPACES_ARTIFACTS_ACCESS_ID }}
-  AWS_USR: ${{ secrets.AWS_USR }}
 
 jobs:
   detect-noop:
@@ -36,53 +27,6 @@ jobs:
           do_not_skip: '["workflow_dispatch", "schedule", "push"]'
           concurrent_skipping: false
 
-
-  lint:
-    runs-on: ubuntu-22.04
-    needs: detect-noop
-    if: needs.detect-noop.outputs.noop != 'true'
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-        with:
-          submodules: true
-
-      - name: Setup Go
-        uses: actions/setup-go@v2
-        with:
-          go-version: ${{ env.GO_VERSION }}
-
-      - name: Find the Go Build Cache
-        id: go
-        run: echo "::set-output name=cache::$(go env GOCACHE)"
-
-      - name: Cache the Go Build Cache
-        uses: actions/cache@v4
-        with:
-          path: ${{ steps.go.outputs.cache }}
-          key: ${{ runner.os }}-build-lint-${{ hashFiles('**/go.sum') }}
-          restore-keys: ${{ runner.os }}-build-lint-
-
-      - name: Cache Go Dependencies
-        uses: actions/cache@v4
-        with:
-          path: .work/pkg
-          key: ${{ runner.os }}-pkg-${{ hashFiles('**/go.sum') }}
-          restore-keys: ${{ runner.os }}-pkg-
-
-      - name: Vendor Dependencies
-        run: make vendor vendor.check
-
-      # We could run 'make lint' to ensure our desired Go version, but we prefer
-      # this action because it leaves 'annotations' (i.e. it comments on PRs to
-      # point out linter violations).
-      - name: Lint
-        uses: golangci/golangci-lint-action@v3
-        with:
-          version: ${{ env.GOLANGCI_VERSION }}
-
-
   check-diff:
     runs-on: ubuntu-22.04
     needs: detect-noop
@@ -94,83 +38,8 @@ jobs:
         with:
           submodules: true
 
-      - name: Setup Go
-        uses: actions/setup-go@v2
-        with:
-          go-version: ${{ env.GO_VERSION }}
-
-      - name: Find the Go Build Cache
-        id: go
-        run: echo "::set-output name=cache::$(go env GOCACHE)"
-
-      - name: Cache the Go Build Cache
-        uses: actions/cache@v4
-        with:
-          path: ${{ steps.go.outputs.cache }}
-          key: ${{ runner.os }}-build-check-diff-${{ hashFiles('**/go.sum') }}
-          restore-keys: ${{ runner.os }}-build-check-diff-
-
-      - name: Cache Go Dependencies
-        uses: actions/cache@v4
-        with:
-          path: .work/pkg
-          key: ${{ runner.os }}-pkg-${{ hashFiles('**/go.sum') }}
-          restore-keys: ${{ runner.os }}-pkg-
-
-      - name: Vendor Dependencies
-        run: make vendor vendor.check
-
       - name: Check Diff
         run: make check-diff
-
-  unit-tests:
-    runs-on: ubuntu-22.04
-    needs: detect-noop
-    if: needs.detect-noop.outputs.noop != 'true'
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-        with:
-          submodules: true
-
-      - name: Fetch History
-        run: git fetch --prune --unshallow
-
-      - name: Setup Go
-        uses: actions/setup-go@v2
-        with:
-          go-version: ${{ env.GO_VERSION }}
-
-      - name: Find the Go Build Cache
-        id: go
-        run: echo "::set-output name=cache::$(go env GOCACHE)"
-
-      - name: Cache the Go Build Cache
-        uses: actions/cache@v4
-        with:
-          path: ${{ steps.go.outputs.cache }}
-          key: ${{ runner.os }}-build-unit-tests-${{ hashFiles('**/go.sum') }}
-          restore-keys: ${{ runner.os }}-build-unit-tests-
-
-      - name: Cache Go Dependencies
-        uses: actions/cache@v4
-        with:
-          path: .work/pkg
-          key: ${{ runner.os }}-pkg-${{ hashFiles('**/go.sum') }}
-          restore-keys: ${{ runner.os }}-pkg-
-
-      - name: Vendor Dependencies
-        run: make vendor vendor.check
-
-      - name: Run Unit Tests
-        run: make -j2 test
-
-      - name: Publish Unit Test Coverage
-        uses: codecov/codecov-action@v1
-        with:
-          flags: unittests
-          file: _output/tests/linux_amd64/coverage.txt
 
   publish-artifacts:
     runs-on: ubuntu-22.04
@@ -197,32 +66,6 @@ jobs:
       - name: Fetch History
         run: git fetch --prune --unshallow
 
-      - name: Setup Go
-        uses: actions/setup-go@v2
-        with:
-          go-version: ${{ env.GO_VERSION }}
-
-      - name: Find the Go Build Cache
-        id: go
-        run: echo "::set-output name=cache::$(go env GOCACHE)"
-
-      - name: Cache the Go Build Cache
-        uses: actions/cache@v4
-        with:
-          path: ${{ steps.go.outputs.cache }}
-          key: ${{ runner.os }}-build-publish-artifacts-${{ hashFiles('**/go.sum') }}
-          restore-keys: ${{ runner.os }}-build-publish-artifacts-
-
-      - name: Cache Go Dependencies
-        uses: actions/cache@v4
-        with:
-          path: .work/pkg
-          key: ${{ runner.os }}-pkg-${{ hashFiles('**/go.sum') }}
-          restore-keys: ${{ runner.os }}-pkg-
-
-      - name: Vendor Dependencies
-        run: make vendor vendor.check
-
       - name: Build Artifacts
         run: make build.all
         env:
@@ -230,70 +73,20 @@ jobs:
           # builds by default. Specifying --load does so.
           BUILD_ARGS: "--load"
 
+      - name: Login to Upbound
+        uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3
+        if: env.UPBOUND_MARKETPLACE_PUSH_ROBOT_USR != ''
+        with:
+          registry: xpkg.upbound.io
+          username: ${{ secrets.UPBOUND_MARKETPLACE_PUSH_ROBOT_USR }}
+          password: ${{ secrets.UPBOUND_MARKETPLACE_PUSH_ROBOT_PSW }}
+
+      - name: Publish Artifacts
+        if: (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release-'))
+        run: make publish BRANCH_NAME=${GITHUB_REF##*/}
+
       - name: Publish Artifacts to GitHub
         uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874 # v4
         with:
           name: output
           path: _output/**
-
-      - name: Login to Upbound Marketplace
-        uses: docker/login-action@v1
-        if: env.XPKG_ACCESS_ID != ''
-        with:
-          registry: xpkg.upbound.io
-          username: ${{ secrets.XPKG_ACCESS_ID }}
-          password: ${{ secrets.XPKG_TOKEN }}
-
-      - name: Publish Artifacts to S3 and Marketplace
-        run: make -j2 publish BRANCH_NAME=${GITHUB_REF##*/}
-        if: env.AWS_USR != '' && env.XPKG_ACCESS_ID != ''
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_USR }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_PSW }}
-          AWS_DEFAULT_REGION: us-east-1
-          GIT_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-
-      - name: Promote Artifacts in S3 and Marketplace
-        if: github.ref == 'refs/heads/main' && env.AWS_USR != '' && env.XPKG_ACCESS_ID != ''
-        run: make -j2 promote
-        env:
-          BRANCH_NAME: main
-          CHANNEL: main
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_USR }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_PSW }}
-          AWS_DEFAULT_REGION: us-east-1
-
-  mirror-spaces-artifacts:
-    runs-on: ubuntu-22.04
-    needs: publish-artifacts
-    if: (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release-'))
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-        with:
-          submodules: true
-
-      - name: Fetch History
-        run: git fetch --prune --unshallow
-
-      - name: Set Crossplane Version
-        run: make get-versions > $GITHUB_ENV
-
-      - name: Setup Crane
-        uses: imjasonh/setup-crane@v0.4
-
-      - name: Login to Spaces Artifacts Registry
-        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # v3
-        if: env.XPKG_SPACES_ARTIFACTS_ACCESS_ID != ''
-        with:
-          registry: xpkg.upbound.io/spaces-artifacts
-          username: ${{ secrets.XPKG_SPACES_ARTIFACTS_ACCESS_ID }}
-          password: ${{ secrets.XPKG_SPACES_ARTIFACTS_TOKEN }}
-
-      - name: Copy Upbound Crossplane image to Spaces Artifacts Registry
-        if: env.XPKG_SPACES_ARTIFACTS_ACCESS_ID != ''
-        run: |
-          crane cp xpkg.upbound.io/upbound/crossplane:${CROSSPLANE_VERSION} xpkg.upbound.io/spaces-artifacts/crossplane:${CROSSPLANE_VERSION}
-          crane cp xpkg.upbound.io/upbound/universal-crossplane:${HELM_CHART_VERSION} xpkg.upbound.io/spaces-artifacts/universal-crossplane:${HELM_CHART_VERSION}

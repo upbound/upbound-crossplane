@@ -1,10 +1,10 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: universal-crossplane-config
+  name: upbound-crossplane-versions
   namespace: {{ .Release.Namespace }}
   labels:
-    {{- include "labelsBootstrapper" . | nindent 4 }}
+    {{- include "labels" . | nindent 4 }}
 data:
   crossplaneVersion: {{ (trimPrefix "v" .Values.image.tag) }}
   uxpVersion: {{ .Chart.Version }}

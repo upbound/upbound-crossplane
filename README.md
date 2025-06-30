@@ -81,14 +81,14 @@ If you'd like to upgrade to a specific version, run the following:
 
    ```console
    # Assuming it is installed in "crossplane-system" with release name "crossplane".
-   helm upgrade crossplane --namespace crossplane-system upbound-stable/universal-crossplane --devel
+   helm upgrade crossplane --namespace crossplane-system upbound-stable/upbound-crossplane --devel
    ```
 
 If you'd like to upgrade to a specific version, run the following:
 
    ```console
    # Assuming it is installed in "crossplane-system" with release name "crossplane".
-   helm upgrade crossplane --namespace crossplane-system upbound-stable/universal-crossplane --devel --version vX.Y.Z-up.N
+   helm upgrade crossplane --namespace crossplane-system upbound-stable/upbound-crossplane --devel --version vX.Y.Z-up.N
    ```
 
 ## Contributing
@@ -98,7 +98,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md)
 ## Releases
 
 After each minor Crossplane release, a corresponding patched and hardened
-version of Universal Crossplane will be released after 2 weeks at the latest.
+version of Upbound Crossplane will be released after 2 weeks at the latest.
 
 After the minor release of UXP, we will update that version with UXP-specific
 patches by incrementing `-up.X` suffix as well as upstream patches by incrementing

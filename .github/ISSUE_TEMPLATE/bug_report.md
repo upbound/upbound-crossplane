@@ -1,10 +1,10 @@
 ---
 name: Bug Report
-about: Help us diagnose and fix bugs in Upbound Universal Crossplane (UXP)
+about: Help us diagnose and fix bugs in Upbound Crossplane (UXP)
 labels: bug
 ---
 <!--
-Thank you for helping to improve Upbound Universal Crossplane (UXP)!
+Thank you for helping to improve Upbound Crossplane (UXP)!
 
 Please be sure to search for open issues before raising a new one. We use issues
 for bug reports and feature requests. Please find us at https://slack.crossplane.io

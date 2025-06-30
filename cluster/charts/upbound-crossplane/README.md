@@ -1,13 +1,12 @@
-# universal-crossplane
+# upbound-crossplane
 
 ![Version: 0.0.1](https://img.shields.io/badge/Version-0.0.1-informational?style=flat-square) ![AppVersion: 0.0.1](https://img.shields.io/badge/AppVersion-0.0.1-informational?style=flat-square)
 
-Upbound Universal Crossplane (UXP) is Upbound's official enterprise-grade
+Upbound Crossplane (UXP) is Upbound's official enterprise-grade
 distribution of Crossplane. It's fully compatible with upstream Crossplane,
-open source, capable of connecting to Upbound Cloud for real-time dashboard
-visibility, and maintained by Upbound. It's the easiest way for both
-individual community members and enterprises to build their production control
-planes.
+and providing additional features such as a local Web UI, and maintained by
+Upbound. It's the easiest way for both individual community members and
+enterprises to build their production control planes.
 
 **Homepage:** <https://upbound.io>
 

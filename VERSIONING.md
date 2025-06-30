@@ -1,6 +1,6 @@
 # Versioning
 
-Universal Crossplane (UXP) uses a semantic versioning system based on the
+Upbound Crossplane (UXP) uses a semantic versioning system based on the
 upstream Crossplane versioning to identify releases. UXP embeds Crossplane
 itself in its Helm chart, so the major, minor, and patch version of any UXP
 release will always match the embedded Crossplane major, minor, and patch
