@@ -24,8 +24,8 @@ export CROSSPLANE_TAG
 
 # ====================================================================================
 # Setup Kubernetes tools
+KIND_VERSION = v0.29.0
 USE_HELM3 = true
-HELM_CHART_LINT_STRICT = false
 
 -include build/makelib/k8s_tools.mk
 # ====================================================================================
@@ -42,6 +42,7 @@ HELM_OCI_URL = xpkg.upbound.io/upbound-dev
 HELM_CHARTS = upbound-crossplane
 HELM_DOCS_ENABLED = true
 HELM_VALUES_TEMPLATE_SKIPPED = true
+HELM_CHART_LINT_STRICT = false
 -include makelib/helmoci.mk
 
 # ====================================================================================
@@ -90,7 +91,33 @@ crossplane:
 
 generate.init: crossplane
 
-e2e.run: build local-dev
-e2e.done: local.down
+# ====================================================================================
+# Local Development
+
+# local-dev builds the controller manager, and deploys it to a kind cluster. It runs in your
+# local environment, not a container. The kind cluster will keep running until
+# you run the local-dev.down target. Run local-dev again to rebuild the controller manager and restart
+# the kind cluster with the new build. Uses random version suffix to ensure existing pods are replaced.
+local-dev: $(KIND) $(HELM) generate
+	@$(INFO) Setting up local development environment
+	@set -e; \
+	if ! $(KIND) get clusters | grep -q "^uxp-dev$$"; then \
+		$(KIND) create cluster --name uxp-dev; \
+	fi; \
+	docker pull xpkg.upbound.io/upbound/crossplane:$(CROSSPLANE_TAG); \
+	$(KIND) load docker-image --name uxp-dev xpkg.upbound.io/upbound/crossplane:$(CROSSPLANE_TAG); \
+	HELM_SETS="upbound.manager.image.pullPolicy=Never,upbound.manager.image.repository=upbound/controller-manager,upbound.manager.image.tag=$$IMAGE_TAG,upbound.manager.args={--debug}"; \
+	if [ -n "$$UXP_LICENSE_KEY" ]; then \
+		HELM_SETS="$$HELM_SETS,upbound.licenseKey=$$UXP_LICENSE_KEY"; \
+	fi; \
+	$(HELM) upgrade --install crossplane --namespace crossplane-system --create-namespace ./cluster/charts/upbound-crossplane \
+		--set "$$HELM_SETS"
+	@$(OK) Local development environment ready
+
+# local-dev.down deletes the kind cluster created by the local-dev target.
+local-dev.down: $(KIND)
+	@$(INFO) Tearing down local development environment
+	@$(KIND) delete cluster --name uxp-dev 2>/dev/null || true
+	@$(OK) Local development environment removed
 
 .PHONY: crossplane submodules fallthrough
