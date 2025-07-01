@@ -3,13 +3,10 @@
 #
 # -- The number of Crossplane pod `replicas` to deploy.
 replicas: 1
-
 # -- The number of Crossplane ReplicaSets to retain.
 revisionHistoryLimit: null
-
 # -- The deployment strategy for the Crossplane and RBAC Manager pods.
 deploymentStrategy: RollingUpdate
-
 image:
   # -- Repository for the Crossplane pod image.
   repository: xpkg.upbound.io/upbound/crossplane
@@ -19,7 +16,6 @@ image:
   pullPolicy: IfNotPresent
   # -- Do not use the {{ .image.tag }} value to compute the image uri.
   ignoreTag: false
-
 # -- Add `nodeSelectors` to the Crossplane pod deployment.
 nodeSelector: {}
 # -- Add `tolerations` to the Crossplane pod deployment.
@@ -28,19 +24,14 @@ tolerations: []
 affinity: {}
 # -- Add `topologySpreadConstraints` to the Crossplane pod deployment.
 topologySpreadConstraints: []
-
 # -- Enable `hostNetwork` for the Crossplane deployment. Caution: enabling `hostNetwork` grants the Crossplane Pod access to the host network namespace. Consider setting `dnsPolicy` to `ClusterFirstWithHostNet`.
 hostNetwork: false
-
 # -- Specify the `dnsPolicy` to be used by the Crossplane pod.
 dnsPolicy: ""
-
 # -- Add custom `labels` to the Crossplane pod deployment.
 customLabels: {}
-
 # -- Add custom `annotations` to the Crossplane pod deployment.
 customAnnotations: {}
-
 serviceAccount:
   # -- Specifies whether Crossplane ServiceAccount should be created
   create: true
@@ -48,43 +39,34 @@ serviceAccount:
   name: ""
   # -- Add custom `annotations` to the Crossplane ServiceAccount.
   customAnnotations: {}
-
 # -- Enable [leader election](https://docs.crossplane.io/latest/concepts/pods/#leader-election) for the Crossplane pod.
 leaderElection: true
 # -- Add custom arguments to the Crossplane pod.
 args: []
-
 provider:
   # -- A list of Provider packages to install.
   packages: []
-
 configuration:
   # -- A list of Configuration packages to install.
   packages: []
-
 function:
   # -- A list of Function packages to install
   packages: []
-
 # -- The imagePullSecret names to add to the Crossplane ServiceAccount.
 imagePullSecrets: []
-
 registryCaBundleConfig:
   # -- The ConfigMap name containing a custom CA bundle to enable fetching packages from registries with unknown or untrusted certificates.
   name: ""
   # -- The ConfigMap key containing a custom CA bundle to enable fetching packages from registries with unknown or untrusted certificates.
   key: ""
-
 service:
   # -- Configure annotations on the service object. Only enabled when webhooks.enabled = true
   customAnnotations: {}
-
 webhooks:
   # -- Enable webhooks for Crossplane and installed Provider packages.
   enabled: true
   # -- The port the webhook server listens on.
   port: ""
-
 rbacManager:
   # -- Deploy the RBAC Manager pod and its required roles.
   deploy: true
@@ -106,13 +88,10 @@ rbacManager:
   affinity: {}
   # -- Add `topologySpreadConstraints` to the RBAC Manager pod deployment.
   topologySpreadConstraints: []
-
 # -- The PriorityClass name to apply to the Crossplane and RBAC Manager pods.
 priorityClassName: ""
-
 # -- The runtimeClassName name to apply to the Crossplane and RBAC Manager pods.
 runtimeClassName: ""
-
 resourcesCrossplane:
   limits:
     # -- CPU resource limits for the Crossplane pod.
@@ -124,7 +103,6 @@ resourcesCrossplane:
     cpu: 100m
     # -- Memory resource requests for the Crossplane pod.
     memory: 256Mi
-
 securityContextCrossplane:
   # -- The user ID used by the Crossplane pod.
   runAsUser: 65532
@@ -134,7 +112,6 @@ securityContextCrossplane:
   allowPrivilegeEscalation: false
   # -- Set the Crossplane pod root file system as read-only.
   readOnlyRootFilesystem: true
-
 packageCache:
   # -- Set to `Memory` to hold the package cache in a RAM backed file system. Useful for Crossplane development.
   medium: ""
@@ -144,7 +121,6 @@ packageCache:
   pvc: ""
   # -- The name of a ConfigMap to use as the package cache. Disables the default package cache `emptyDir` Volume.
   configMap: ""
-
 functionCache:
   # -- Set to `Memory` to hold the function cache in a RAM backed file system. Useful for Crossplane development.
   medium: ""
@@ -152,7 +128,6 @@ functionCache:
   sizeLimit: 512Mi
   # -- The name of a PersistentVolumeClaim to use as the function cache. Disables the default function cache `emptyDir` Volume.
   pvc: ""
-
 resourcesRBACManager:
   limits:
     # -- CPU resource limits for the RBAC Manager pod.
@@ -164,7 +139,6 @@ resourcesRBACManager:
     cpu: 100m
     # -- Memory resource requests for the RBAC Manager pod.
     memory: 256Mi
-
 securityContextRBACManager:
   # -- The user ID used by the RBAC Manager pod.
   runAsUser: 65532
@@ -174,40 +148,104 @@ securityContextRBACManager:
   allowPrivilegeEscalation: false
   # -- Set the RBAC Manager pod root file system as read-only.
   readOnlyRootFilesystem: true
-
 metrics:
   # -- Enable Prometheus path, port and scrape annotations and expose port 8080 for both the Crossplane and RBAC Manager pods.
   enabled: false
   # -- The port the metrics server listens on.
   port: ""
-
 readiness:
   # -- The port the readyz server listens on.
   port: ""
-
 # -- Add custom environmental variables to the Crossplane pod deployment init container.
 # Replaces any `.` in a variable name with `_`. For example, `SAMPLE.KEY=value1` becomes `SAMPLE_KEY=value1`.
 extraEnvVarsCrossplaneInit: {}
-
 # -- Add custom environmental variables to the Crossplane pod deployment application container.
 # Replaces any `.` in a variable name with `_`. For example, `SAMPLE.KEY=value1` becomes `SAMPLE_KEY=value1`.
 extraEnvVarsCrossplane: {}
-
 # -- Add custom environmental variables to the RBAC Manager pod deployment.
 # Replaces any `.` in a variable name with `_`. For example, `SAMPLE.KEY=value1` becomes `SAMPLE_KEY=value1`.
 extraEnvVarsRBACManager: {}
-
 # -- Add a custom `securityContext` to the Crossplane pod.
 podSecurityContextCrossplane: {}
-
 # -- Add a custom `securityContext` to the RBAC Manager pod.
 podSecurityContextRBACManager: {}
-
 # -- Add custom `volumes` to the Crossplane pod.
 extraVolumesCrossplane: {}
-
 # -- Add custom `volumeMounts` to the Crossplane pod.
 extraVolumeMountsCrossplane: {}
-
 # -- To add arbitrary Kubernetes Objects during a Helm Install
 extraObjects: []
+upbound:
+  # -- UXP License key.
+  licenseKey: ""
+  manager:
+    # -- The number of Upbound Controller Manager pod `replicas` to deploy.
+    replicas: 1
+    # -- The number of Upbound Controller Manager ReplicaSets to retain.
+    revisionHistoryLimit: null
+    # -- The deployment strategy for the Upbound Controller Manager pod.
+    deploymentStrategy: RollingUpdate
+    image:
+      # -- Repository for the Upbound Controller Manager pod image.
+      repository: xpkg.upbound.io/upbound-dev/controller-manager
+      # -- The Upbound Controller Manager image tag. Defaults to the value of `appVersion` in `Chart.yaml`.
+      tag: "v0.1.0-rc.0.2.g3bec693"
+      # -- The Upbound Controller Manager image pull policy used for Crossplane and RBAC Manager pods.
+      pullPolicy: IfNotPresent
+    # -- The imagePullSecret names to add to the Upbound Controller Manager ServiceAccount.
+    imagePullSecrets: []
+    # -- Add `nodeSelectors` to the Upbound Controller Manager pod deployment.
+    nodeSelector: {}
+    # -- Add `tolerations` to the Upbound Controller Manager pod deployment.
+    tolerations: []
+    # -- Add `affinities` to the Upbound Controller Manager pod deployment.
+    affinity: {}
+    # -- Add `topologySpreadConstraints` to the Upbound Controller Manager pod deployment.
+    topologySpreadConstraints: []
+    # -- Specify the `dnsPolicy` to be used by the Upbound Controller Manager pod.
+    dnsPolicy: ""
+    # -- Add custom `annotations` to the Upbound Controller Manager pod deployment.
+    customAnnotations: {}
+    # -- Enable [leader election](https://docs.crossplane.io/latest/concepts/pods/#leader-election) for the Upbound Controller Manager pod.
+    leaderElection: true
+    # -- Add custom arguments to the Upbound Controller Manager pod.
+    args: []
+    # -- The PriorityClass name to apply to the Upbound Controller Manager pod.
+    priorityClassName: ""
+    resources:
+      limits:
+        # -- CPU resource limits for the Upbound Controller Manager pod.
+        cpu: 500m
+        # -- Memory resource limits for the Upbound Controller Manager pod.
+        memory: 512Mi
+      requests:
+        # -- CPU resource requests for the Upbound Controller Manager pod.
+        cpu: 50m
+        # -- Memory resource requests for the Upbound Controller Manager pod.
+        memory: 128Mi
+    securityContext:
+      # -- The user ID used by the Upbound Controller Manager pod.
+      runAsUser: 65532
+      # -- The group ID used by the Upbound Controller Manager pod.
+      runAsGroup: 65532
+      # -- Enable `allowPrivilegeEscalation` for the Upbound Controller Manager pod.
+      allowPrivilegeEscalation: false
+      # -- Set the Upbound Controller Manager pod root file system as read-only.
+      readOnlyRootFilesystem: true
+    metrics:
+      # -- Enable Prometheus path, port and scrape annotations and expose port 8080 for the Upbound Controller Manager pod.
+      enabled: false
+      # -- The port the metrics server listens on.
+      port: ""
+    readiness:
+      # -- The port the readyz server listens on.
+      port: ""
+    # -- Add custom environmental variables to the Upbound Controller Manager pod deployment.
+    # Replaces any `.` in a variable name with `_`. For example, `SAMPLE.KEY=value1` becomes `SAMPLE_KEY=value1`.
+    extraEnvVars: {}
+    # -- Add a custom `securityContext` to the Upbound Controller Manager pod.
+    podSecurityContext: {}
+    # -- Add custom `volumes` to the Upbound Controller Manager pod.
+    extraVolumes: {}
+    # -- Add custom `volumeMounts` to the Upbound Controller Manager pod.
+    extraVolumeMounts: {}

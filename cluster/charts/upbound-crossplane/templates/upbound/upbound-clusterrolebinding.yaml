@@ -1,0 +1,15 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: upbound-controller-manager
+  labels:
+    app: {{ template "controller-manager.name" . }}
+{{- include "controller-manager.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: upbound-controller-manager
+subjects:
+- kind: ServiceAccount
+  name: upbound-controller-manager
+  namespace: {{ .Release.Namespace }} 

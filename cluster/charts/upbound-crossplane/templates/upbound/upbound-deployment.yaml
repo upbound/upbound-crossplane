@@ -1,0 +1,153 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: upbound-controller-manager
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ template "controller-manager.name" . }}
+    release: {{ .Release.Name }}
+{{- include "controller-manager.labels" . | nindent 4 }}
+  {{- with .Values.upbound.manager.customAnnotations }}
+  annotations: {{ toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  replicas: {{ .Values.upbound.manager.replicas }}
+  selector:
+    matchLabels:
+      app: {{ template "controller-manager.name" . }}
+      release: {{ .Release.Name }}
+  strategy:
+    type: {{ .Values.upbound.manager.deploymentStrategy }}
+  {{- if .Values.upbound.manager.revisionHistoryLimit }}
+  revisionHistoryLimit: {{ .Values.upbound.manager.revisionHistoryLimit }}
+  {{- end }}
+  template:
+    metadata:
+      {{- if or .Values.upbound.manager.metrics.enabled .Values.upbound.manager.customAnnotations }}
+      annotations:
+      {{- end }}
+      {{- if .Values.upbound.manager.metrics.enabled }}
+        prometheus.io/path: /metrics
+        prometheus.io/port: "8080"
+        prometheus.io/scrape: "true"
+      {{- end }}
+      {{- with .Values.upbound.manager.customAnnotations }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        app: {{ template "controller-manager.name" . }}
+        release: {{ .Release.Name }}
+{{- include "controller-manager.labels" . | nindent 8 }}
+    spec:
+      {{- with .Values.upbound.manager.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.upbound.manager.priorityClassName }}
+      priorityClassName: {{ .Values.upbound.manager.priorityClassName  | quote }}
+      {{- end }}
+      serviceAccountName: upbound-controller-manager
+      initContainers:
+      - image: "{{ .Values.upbound.manager.image.repository }}:{{ .Values.upbound.manager.image.tag | default (printf "v%s" .Chart.AppVersion) }}"
+        args:
+        - initialize
+        imagePullPolicy: {{ .Values.upbound.manager.image.pullPolicy }}
+        name: initialize-crds
+        {{- with .Values.upbound.manager.securityContext }}
+        securityContext:
+          {{- toYaml . | nindent 12 }}
+        {{- end }}
+        env:
+          - name: POD_NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
+          - name: POD_SERVICE_ACCOUNT
+            valueFrom:
+              fieldRef:
+                fieldPath: spec.serviceAccountName
+          {{- if .Values.upbound.licenseKey }}
+          - name: LICENSE_KEY
+            value: {{ .Values.upbound.licenseKey | quote }}
+          {{- end }}
+      containers:
+      - image: "{{ .Values.upbound.manager.image.repository }}:{{ .Values.upbound.manager.image.tag | default (printf "v%s" .Chart.AppVersion) }}"
+        args:
+        - manager
+        {{- range $arg := .Values.upbound.manager.args }}
+        - {{ $arg }}
+        {{- end }}
+        imagePullPolicy: {{ .Values.upbound.manager.image.pullPolicy }}
+        name: upbound
+        resources:
+          {{- toYaml .Values.upbound.manager.resources | nindent 12 }}
+        startupProbe:
+          failureThreshold: 30
+          periodSeconds: 2
+          tcpSocket:
+            port: readyz
+        ports:
+        - name: readyz
+          containerPort: {{ .Values.upbound.manager.readiness.port | default 8081 }}
+        {{- if .Values.upbound.manager.metrics.enabled }}
+        - name: metrics
+          containerPort: {{ .Values.upbound.manager.metrics.port | default 8080 }}
+        {{- end }}
+        {{- with .Values.upbound.manager.securityContext }}
+        securityContext:
+          {{- toYaml . | nindent 12 }}
+        {{- end }}
+        env:
+          - name: GOMAXPROCS
+            valueFrom:
+              resourceFieldRef:
+                containerName: upbound
+                resource: limits.cpu
+                divisor: "1"
+          - name: GOMEMLIMIT
+            valueFrom:
+              resourceFieldRef:
+                containerName: upbound
+                resource: limits.memory
+                divisor: "1"
+          - name: POD_NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
+          - name: POD_SERVICE_ACCOUNT
+            valueFrom:
+              fieldRef:
+                fieldPath: spec.serviceAccountName
+          - name: LEADER_ELECTION
+            value: "{{ .Values.upbound.manager.leaderElection }}"
+          {{- if .Values.upbound.manager.readiness.port }}
+          - name: "HEALTH_PROBE_PORT"
+            value: "{{ .Values.upbound.manager.readiness.port }}"
+          {{- end}}
+        {{- range $key, $value := .Values.upbound.manager.extraEnvVars }}
+          - name: {{ $key | replace "." "_" }}
+            value: {{ $value | quote }}
+        {{- end}}
+        volumeMounts:
+          {{- if .Values.upbound.manager.extraVolumeMounts }}
+          {{- toYaml .Values.upbound.manager.extraVolumeMounts | nindent 10 }}
+          {{- end }}
+      volumes:
+      {{- if .Values.upbound.manager.extraVolumes }}
+      {{- toYaml .Values.upbound.manager.extraVolumes | nindent 6 }}
+      {{- end }}
+      {{- if .Values.upbound.manager.nodeSelector }}
+      nodeSelector: {{ toYaml .Values.upbound.manager.nodeSelector | nindent 8 }}
+      {{- end }}
+      {{- if .Values.upbound.manager.tolerations }}
+      tolerations: {{ toYaml .Values.upbound.manager.tolerations | nindent 6 }}
+      {{- end }}
+      {{- if .Values.upbound.manager.affinity }}
+      affinity: {{ toYaml .Values.upbound.manager.affinity | nindent 8 }}
+      {{- end }}
+      {{- if .Values.upbound.manager.topologySpreadConstraints }}
+      topologySpreadConstraints: {{ toYaml .Values.upbound.manager.topologySpreadConstraints | nindent 8 }}
+      {{- end }}
+      {{- with .Values.upbound.manager.dnsPolicy }}
+      dnsPolicy: {{ . }}
+      {{- end }}

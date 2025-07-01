@@ -16,11 +16,17 @@ PLATFORMS ?= linux_amd64 linux_arm64
 # Versions
 
 CROSSPLANE_REPO := https://github.com/upbound/crossplane.git
+CONTROLLER_MANAGER_REPO := https://github.com/upbound/controller-manager.git
 # Tag corresponds to Docker image tag while commit is git-compatible signature
 # for pulling. They do not always match.
 CROSSPLANE_TAG := v2.0.0-rc.0
 CROSSPLANE_COMMIT := v2.0.0-rc.0
+
+CONTROLLER_MANAGER_TAG := v0.1.0-rc.0.2.g3bec693
+CONTROLLER_MANAGER_COMMIT := 3bec693ab872073ce1e4bd566a066a8691877065
+
 export CROSSPLANE_TAG
+export CONTROLLER_MANAGER_TAG
 
 # ====================================================================================
 # Setup Kubernetes tools
@@ -64,32 +70,48 @@ submodules:
 	@git submodule sync
 	@git submodule update --init --recursive
 
-GITCP_CMD?=git -C $(WORK_DIR)/crossplane
+GITCP_CMD_CROSSPLANE ?= git -C $(WORK_DIR)/crossplane
+GITCP_CMD_UPBOUND_CONTROLLER_MANAGER ?= git -C $(WORK_DIR)/controller-manager
 
 crossplane:
 	@$(INFO) Fetching Crossplane chart $(CROSSPLANE_TAG)
 	@rm -rf $(WORK_DIR)/crossplane
 	@mkdir -p $(WORK_DIR)/crossplane
-	@$(GITCP_CMD) init
-	@$(GITCP_CMD) remote add origin $(CROSSPLANE_REPO) 2>/dev/null || true
-	@$(GITCP_CMD) fetch origin
-	@$(GITCP_CMD) checkout $(CROSSPLANE_COMMIT)
+	@$(GITCP_CMD_CROSSPLANE) init
+	@$(GITCP_CMD_CROSSPLANE) remote add origin $(CROSSPLANE_REPO) 2>/dev/null || true
+	@$(GITCP_CMD_CROSSPLANE) fetch origin
+	@$(GITCP_CMD_CROSSPLANE) checkout $(CROSSPLANE_COMMIT)
 	@mkdir -p $(HELM_CHARTS_DIR)/upbound-crossplane/templates/crossplane
 	@rm -f $(HELM_CHARTS_DIR)/upbound-crossplane/templates/crossplane/*
 	@cp -a $(WORK_DIR)/crossplane/cluster/charts/crossplane/templates/* $(HELM_CHARTS_DIR)/upbound-crossplane/templates/crossplane
-	@rm -f $(HELM_CHARTS_DIR)/upbound-crossplane/values.yaml
-	@cp -a $(WORK_DIR)/crossplane/cluster/charts/crossplane/values.yaml $(HELM_CHARTS_DIR)/upbound-crossplane/values.yaml
-	@# Note(turkenh): Using sed to replace the repository and tag values in the values.yaml of the upstream chart
-	@# with the ones we want to use for the UXP chart. We also append the uxp-values.yaml to the values.yaml for UXP
-	@# specific values.
-	@# This is more like an interim solution until we need more differences between the upstream and UXP charts.
-	@$(SED_CMD) 's|repository: crossplane/crossplane|repository: upbound/crossplane|g' '$(HELM_CHARTS_DIR)/upbound-crossplane/values.yaml'
-	@$(SED_CMD) 's|repository: crossplane/xfn|repository: upbound/xfn|g' '$(HELM_CHARTS_DIR)/upbound-crossplane/values.yaml'
-	@$(SED_CMD) 's|tag: ""|tag: "$(CROSSPLANE_TAG)"|g' $(HELM_CHARTS_DIR)/upbound-crossplane/values.yaml
-	@cat $(HELM_CHARTS_DIR)/upbound-crossplane/uxp-values.yaml >> $(HELM_CHARTS_DIR)/upbound-crossplane/values.yaml
 	@$(OK) Crossplane chart has been fetched
 
-generate.init: crossplane
+upbound-controller-manager:
+	@$(INFO) Fetching Upbound controller manager chart $(CONTROLLER_MANAGER_TAG)
+	@rm -rf $(WORK_DIR)/controller-manager
+	@mkdir -p $(WORK_DIR)/controller-manager
+	@$(GITCP_CMD_UPBOUND_CONTROLLER_MANAGER) init
+	@$(GITCP_CMD_UPBOUND_CONTROLLER_MANAGER) remote add origin $(CONTROLLER_MANAGER_REPO) 2>/dev/null || true
+	@$(GITCP_CMD_UPBOUND_CONTROLLER_MANAGER) fetch origin
+	@$(GITCP_CMD_UPBOUND_CONTROLLER_MANAGER) checkout $(CONTROLLER_MANAGER_COMMIT)
+	@mkdir -p $(HELM_CHARTS_DIR)/upbound-crossplane/templates/upbound
+	@rm -f $(HELM_CHARTS_DIR)/upbound-crossplane/templates/upbound/*
+	@cp -a $(WORK_DIR)/controller-manager/cluster/charts/controller-manager/templates/* $(HELM_CHARTS_DIR)/upbound-crossplane/templates/upbound
+	@cp -a $(WORK_DIR)/crossplane/cluster/charts/crossplane/values.yaml $(HELM_CHARTS_DIR)/upbound-crossplane/values.yaml
+	@$(OK) Upbound controller manager chart has been fetched
+
+generate-chart: $(YQ) crossplane upbound-controller-manager
+	@$(INFO) Merging Crossplane and Upbound controller manager values.yaml files
+	@rm -f $(HELM_CHARTS_DIR)/upbound-crossplane/values.yaml
+	@cp -a $(WORK_DIR)/crossplane/cluster/charts/crossplane/values.yaml $(HELM_CHARTS_DIR)/upbound-crossplane/values.yaml
+	@cat $(WORK_DIR)/controller-manager/cluster/charts/controller-manager/values.yaml >> $(HELM_CHARTS_DIR)/upbound-crossplane/values.yaml
+	# Note(turkenh): YQ strips out the empty lines in the values.yaml file, which is not ideal: https://github.com/mikefarah/yq/issues/515
+	# After spending some time, I couldn't find a better/lightweight alternative. Tried sed, dasel and dyff but no luck.
+	# If this hurts somehow in the future, we can revisit and consider building a more complex/hacky solution.
+	@$(YQ) eval '.image.tag = "$(CROSSPLANE_TAG)" | .upbound.manager.image.tag = "$(CONTROLLER_MANAGER_TAG)"' -i $(HELM_CHARTS_DIR)/upbound-crossplane/values.yaml
+	@$(OK) Merged Crossplane and Upbound controller manager values.yaml files
+
+generate.init: generate-chart
 
 # ====================================================================================
 # Local Development
@@ -98,7 +120,7 @@ generate.init: crossplane
 # local environment, not a container. The kind cluster will keep running until
 # you run the local-dev.down target. Run local-dev again to rebuild the controller manager and restart
 # the kind cluster with the new build. Uses random version suffix to ensure existing pods are replaced.
-local-dev: $(KIND) $(HELM) generate
+local-dev: $(KIND) $(HELM)
 	@$(INFO) Setting up local development environment
 	@set -e; \
 	if ! $(KIND) get clusters | grep -q "^uxp-dev$$"; then \
@@ -106,7 +128,9 @@ local-dev: $(KIND) $(HELM) generate
 	fi; \
 	docker pull xpkg.upbound.io/upbound/crossplane:$(CROSSPLANE_TAG); \
 	$(KIND) load docker-image --name uxp-dev xpkg.upbound.io/upbound/crossplane:$(CROSSPLANE_TAG); \
-	HELM_SETS="upbound.manager.image.pullPolicy=Never,upbound.manager.image.repository=upbound/controller-manager,upbound.manager.image.tag=$$IMAGE_TAG,upbound.manager.args={--debug}"; \
+	docker pull xpkg.upbound.io/upbound-dev/controller-manager:$(CONTROLLER_MANAGER_TAG); \
+	$(KIND) load docker-image --name uxp-dev xpkg.upbound.io/upbound-dev/controller-manager:$(CONTROLLER_MANAGER_TAG); \
+	HELM_SETS="upbound.manager.image.pullPolicy=Never,upbound.manager.image.tag=$$CONTROLLER_MANAGER_TAG,upbound.manager.args={--debug}"; \
 	if [ -n "$$UXP_LICENSE_KEY" ]; then \
 		HELM_SETS="$$HELM_SETS,upbound.licenseKey=$$UXP_LICENSE_KEY"; \
 	fi; \
