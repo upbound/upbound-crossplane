@@ -45,7 +45,7 @@ USE_HELM3 = true
 # For now, we are using the xpkg.upbound.io/upbound-dev as a stop gap solution until we start
 # publishing to the public upbound-stable helm repository.
 HELM_OCI_URL = xpkg.upbound.io/upbound-dev
-HELM_CHARTS = upbound-crossplane
+HELM_CHARTS = crossplane
 HELM_DOCS_ENABLED = true
 HELM_VALUES_TEMPLATE_SKIPPED = true
 HELM_CHART_LINT_STRICT = false
@@ -81,9 +81,9 @@ crossplane:
 	@$(GITCP_CMD_CROSSPLANE) remote add origin $(CROSSPLANE_REPO) 2>/dev/null || true
 	@$(GITCP_CMD_CROSSPLANE) fetch origin
 	@$(GITCP_CMD_CROSSPLANE) checkout $(CROSSPLANE_COMMIT)
-	@mkdir -p $(HELM_CHARTS_DIR)/upbound-crossplane/templates/crossplane
-	@rm -f $(HELM_CHARTS_DIR)/upbound-crossplane/templates/crossplane/*
-	@cp -a $(WORK_DIR)/crossplane/cluster/charts/crossplane/templates/* $(HELM_CHARTS_DIR)/upbound-crossplane/templates/crossplane
+	@mkdir -p $(HELM_CHARTS_DIR)/crossplane/templates/crossplane
+	@rm -f $(HELM_CHARTS_DIR)/crossplane/templates/crossplane/*
+	@cp -a $(WORK_DIR)/crossplane/cluster/charts/crossplane/templates/* $(HELM_CHARTS_DIR)/crossplane/templates/crossplane
 	@$(OK) Crossplane chart has been fetched
 
 upbound-controller-manager:
@@ -94,21 +94,21 @@ upbound-controller-manager:
 	@$(GITCP_CMD_UPBOUND_CONTROLLER_MANAGER) remote add origin $(CONTROLLER_MANAGER_REPO) 2>/dev/null || true
 	@$(GITCP_CMD_UPBOUND_CONTROLLER_MANAGER) fetch origin
 	@$(GITCP_CMD_UPBOUND_CONTROLLER_MANAGER) checkout $(CONTROLLER_MANAGER_COMMIT)
-	@mkdir -p $(HELM_CHARTS_DIR)/upbound-crossplane/templates/upbound
-	@rm -f $(HELM_CHARTS_DIR)/upbound-crossplane/templates/upbound/*
-	@cp -a $(WORK_DIR)/controller-manager/cluster/charts/controller-manager/templates/* $(HELM_CHARTS_DIR)/upbound-crossplane/templates/upbound
-	@cp -a $(WORK_DIR)/crossplane/cluster/charts/crossplane/values.yaml $(HELM_CHARTS_DIR)/upbound-crossplane/values.yaml
+	@mkdir -p $(HELM_CHARTS_DIR)/crossplane/templates/upbound
+	@rm -f $(HELM_CHARTS_DIR)/crossplane/templates/upbound/*
+	@cp -a $(WORK_DIR)/controller-manager/cluster/charts/controller-manager/templates/* $(HELM_CHARTS_DIR)/crossplane/templates/upbound
+	@cp -a $(WORK_DIR)/crossplane/cluster/charts/crossplane/values.yaml $(HELM_CHARTS_DIR)/crossplane/values.yaml
 	@$(OK) Upbound controller manager chart has been fetched
 
 generate-chart: $(YQ) crossplane upbound-controller-manager
 	@$(INFO) Merging Crossplane and Upbound controller manager values.yaml files
-	@rm -f $(HELM_CHARTS_DIR)/upbound-crossplane/values.yaml
-	@cp -a $(WORK_DIR)/crossplane/cluster/charts/crossplane/values.yaml $(HELM_CHARTS_DIR)/upbound-crossplane/values.yaml
-	@cat $(WORK_DIR)/controller-manager/cluster/charts/controller-manager/values.yaml >> $(HELM_CHARTS_DIR)/upbound-crossplane/values.yaml
+	@rm -f $(HELM_CHARTS_DIR)/crossplane/values.yaml
+	@cp -a $(WORK_DIR)/crossplane/cluster/charts/crossplane/values.yaml $(HELM_CHARTS_DIR)/crossplane/values.yaml
+	@cat $(WORK_DIR)/controller-manager/cluster/charts/controller-manager/values.yaml >> $(HELM_CHARTS_DIR)/crossplane/values.yaml
 	# Note(turkenh): YQ strips out the empty lines in the values.yaml file, which is not ideal: https://github.com/mikefarah/yq/issues/515
 	# After spending some time, I couldn't find a better/lightweight alternative. Tried sed, dasel and dyff but no luck.
 	# If this hurts somehow in the future, we can revisit and consider building a more complex/hacky solution.
-	@$(YQ) eval '.image.tag = "$(CROSSPLANE_TAG)" | .upbound.manager.image.tag = "$(CONTROLLER_MANAGER_TAG)"' -i $(HELM_CHARTS_DIR)/upbound-crossplane/values.yaml
+	@$(YQ) eval '.image.tag = "$(CROSSPLANE_TAG)" | .upbound.manager.image.tag = "$(CONTROLLER_MANAGER_TAG)"' -i $(HELM_CHARTS_DIR)/crossplane/values.yaml
 	@$(OK) Merged Crossplane and Upbound controller manager values.yaml files
 
 generate.init: generate-chart
