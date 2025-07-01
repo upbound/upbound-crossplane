@@ -18,8 +18,8 @@ PLATFORMS ?= linux_amd64 linux_arm64
 CROSSPLANE_REPO := https://github.com/upbound/crossplane.git
 # Tag corresponds to Docker image tag while commit is git-compatible signature
 # for pulling. They do not always match.
-CROSSPLANE_TAG := v1.20.0-up.1
-CROSSPLANE_COMMIT := v1.20.0-up.1
+CROSSPLANE_TAG := v2.0.0-rc.0
+CROSSPLANE_COMMIT := v2.0.0-rc.0
 export CROSSPLANE_TAG
 
 # ====================================================================================
