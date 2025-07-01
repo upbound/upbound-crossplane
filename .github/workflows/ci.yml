@@ -10,6 +10,7 @@ on:
 
 env:
   DOCKER_BUILDX_VERSION: 'v0.8.2'
+  UPBOUND_MARKETPLACE_PUSH_ROBOT_USR: ${{ secrets.UPBOUND_MARKETPLACE_PUSH_ROBOT_USR }}
 
 
 jobs:
@@ -33,6 +34,10 @@ jobs:
     if: needs.detect-noop.outputs.noop != 'true'
 
     steps:
+      - name: Configure Git credentials for private repositories
+        run: |
+          git config --global url."https://upbound-bot:${{ secrets.UPBOUND_BOT_GITHUB_TOKEN }}@github.com".insteadOf "https://github.com"
+
       - name: Checkout
         uses: actions/checkout@v2
         with:
@@ -47,6 +52,10 @@ jobs:
     if: needs.detect-noop.outputs.noop != 'true'
 
     steps:
+      - name: Configure Git credentials for private repositories
+        run: |
+          git config --global url."https://upbound-bot:${{ secrets.UPBOUND_BOT_GITHUB_TOKEN }}@github.com".insteadOf "https://github.com"
+
       - name: Setup QEMU
         uses: docker/setup-qemu-action@v1
         with:
@@ -66,8 +75,8 @@ jobs:
       - name: Fetch History
         run: git fetch --prune --unshallow
 
-      - name: Build Artifacts
-        run: make build.all
+      - name: Generate and build the chart
+        run: make generate build.all
         env:
           # We're using docker buildx, which doesn't actually load the images it
           # builds by default. Specifying --load does so.
