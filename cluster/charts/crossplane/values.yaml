@@ -189,7 +189,7 @@ upbound:
       # -- Repository for the Upbound Controller Manager pod image.
       repository: xpkg.upbound.io/upbound-dev/controller-manager
       # -- The Upbound Controller Manager image tag. Defaults to the value of `appVersion` in `Chart.yaml`.
-      tag: "v0.1.0-rc.0.2.g3bec693"
+      tag: "v0.1.0-rc.0.4.g0902b55"
       # -- The Upbound Controller Manager image pull policy used for Crossplane and RBAC Manager pods.
       pullPolicy: IfNotPresent
     # -- The imagePullSecret names to add to the Upbound Controller Manager ServiceAccount.

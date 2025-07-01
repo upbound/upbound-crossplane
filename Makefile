@@ -22,8 +22,8 @@ CONTROLLER_MANAGER_REPO := https://github.com/upbound/controller-manager.git
 CROSSPLANE_TAG := v2.0.0-rc.0
 CROSSPLANE_COMMIT := v2.0.0-rc.0
 
-CONTROLLER_MANAGER_TAG := v0.1.0-rc.0.2.g3bec693
-CONTROLLER_MANAGER_COMMIT := 3bec693ab872073ce1e4bd566a066a8691877065
+CONTROLLER_MANAGER_TAG := v0.1.0-rc.0.4.g0902b55
+CONTROLLER_MANAGER_COMMIT := 0902b5518c8453ef45f4c33687cdd95a3680fe06
 
 export CROSSPLANE_TAG
 export CONTROLLER_MANAGER_TAG
@@ -134,7 +134,7 @@ local-dev: $(KIND) $(HELM)
 	if [ -n "$$UXP_LICENSE_KEY" ]; then \
 		HELM_SETS="$$HELM_SETS,upbound.licenseKey=$$UXP_LICENSE_KEY"; \
 	fi; \
-	$(HELM) upgrade --install crossplane --namespace crossplane-system --create-namespace ./cluster/charts/upbound-crossplane \
+	$(HELM) upgrade --install crossplane --namespace crossplane-system --create-namespace ./cluster/charts/crossplane \
 		--set "$$HELM_SETS"
 	@$(OK) Local development environment ready
 
