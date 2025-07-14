@@ -16,17 +16,11 @@ PLATFORMS ?= linux_amd64 linux_arm64
 # Versions
 
 CROSSPLANE_REPO := https://github.com/upbound/crossplane.git
-CONTROLLER_MANAGER_REPO := https://github.com/upbound/controller-manager.git
 # Tag corresponds to Docker image tag while commit is git-compatible signature
 # for pulling. They do not always match.
 CROSSPLANE_TAG := v2.0.0-rc.0
 CROSSPLANE_COMMIT := v2.0.0-rc.0
-
-CONTROLLER_MANAGER_TAG := v0.1.0-rc.0.4.g0902b55
-CONTROLLER_MANAGER_COMMIT := 0902b5518c8453ef45f4c33687cdd95a3680fe06
-
 export CROSSPLANE_TAG
-export CONTROLLER_MANAGER_TAG
 
 # ====================================================================================
 # Setup Kubernetes tools
@@ -71,8 +65,8 @@ submodules:
 	@git submodule update --init --recursive
 
 GITCP_CMD_CROSSPLANE ?= git -C $(WORK_DIR)/crossplane
-GITCP_CMD_UPBOUND_CONTROLLER_MANAGER ?= git -C $(WORK_DIR)/controller-manager
 
+# TODO(turkenh): Avoid fetching the entire Crossplane repository every time by checking whether it is already checked out.
 crossplane:
 	@$(INFO) Fetching Crossplane chart $(CROSSPLANE_TAG)
 	@rm -rf $(WORK_DIR)/crossplane
@@ -86,32 +80,17 @@ crossplane:
 	@cp -a $(WORK_DIR)/crossplane/cluster/charts/crossplane/templates/* $(HELM_CHARTS_DIR)/crossplane/templates/crossplane
 	@$(OK) Crossplane chart has been fetched
 
-upbound-controller-manager:
-	@$(INFO) Fetching Upbound controller manager chart $(CONTROLLER_MANAGER_TAG)
-	@rm -rf $(WORK_DIR)/controller-manager
-	@mkdir -p $(WORK_DIR)/controller-manager
-	@$(GITCP_CMD_UPBOUND_CONTROLLER_MANAGER) init
-	@$(GITCP_CMD_UPBOUND_CONTROLLER_MANAGER) remote add origin $(CONTROLLER_MANAGER_REPO) 2>/dev/null || true
-	@$(GITCP_CMD_UPBOUND_CONTROLLER_MANAGER) fetch origin
-	@$(GITCP_CMD_UPBOUND_CONTROLLER_MANAGER) checkout $(CONTROLLER_MANAGER_COMMIT)
-	@mkdir -p $(HELM_CHARTS_DIR)/crossplane/templates/upbound
-	@rm -f $(HELM_CHARTS_DIR)/crossplane/templates/upbound/*
-	@cp -a $(WORK_DIR)/controller-manager/cluster/charts/controller-manager/templates/* $(HELM_CHARTS_DIR)/crossplane/templates/upbound
-	@cp -a $(WORK_DIR)/crossplane/cluster/charts/crossplane/values.yaml $(HELM_CHARTS_DIR)/crossplane/values.yaml
-	@$(OK) Upbound controller manager chart has been fetched
-
-generate-chart: $(YQ) crossplane upbound-controller-manager
-	@$(INFO) Merging Crossplane and Upbound controller manager values.yaml files
+generate-chart: $(YQ) crossplane helm.lint
+	@$(INFO) Generating Chart from Upbound Crossplane
 	@rm -f $(HELM_CHARTS_DIR)/crossplane/values.yaml
 	@cp -a $(WORK_DIR)/crossplane/cluster/charts/crossplane/values.yaml $(HELM_CHARTS_DIR)/crossplane/values.yaml
-	@cat $(WORK_DIR)/controller-manager/cluster/charts/controller-manager/values.yaml >> $(HELM_CHARTS_DIR)/crossplane/values.yaml
-	# Note(turkenh): YQ strips out the empty lines in the values.yaml file, which is not ideal: https://github.com/mikefarah/yq/issues/515
-	# After spending some time, I couldn't find a better/lightweight alternative. Tried sed, dasel and dyff but no luck.
-	# If this hurts somehow in the future, we can revisit and consider building a more complex/hacky solution.
-	@$(YQ) eval '.image.tag = "$(CROSSPLANE_TAG)" | .upbound.manager.image.tag = "$(CONTROLLER_MANAGER_TAG)"' -i $(HELM_CHARTS_DIR)/crossplane/values.yaml
-	@$(OK) Merged Crossplane and Upbound controller manager values.yaml files
+	@# Note(turkenh): YQ strips out the empty lines in the values.yaml file, which is not ideal: https://github.com/mikefarah/yq/issues/515
+	@# After spending some time, I couldn't find a better/lightweight alternative. Tried sed, dasel and dyff but no luck.
+	@# If this hurts somehow in the future, we can revisit and consider building a more complex/hacky solution.
+	@$(YQ) eval '.image.tag = "$(CROSSPLANE_TAG)"' -i $(HELM_CHARTS_DIR)/crossplane/values.yaml
+	@$(OK) Generated Chart from Upbound Crossplane
 
-generate.init: generate-chart
+helm.dep: generate-chart
 
 # ====================================================================================
 # Local Development
@@ -120,21 +99,19 @@ generate.init: generate-chart
 # local environment, not a container. The kind cluster will keep running until
 # you run the local-dev.down target. Run local-dev again to rebuild the controller manager and restart
 # the kind cluster with the new build. Uses random version suffix to ensure existing pods are replaced.
-local-dev: $(KIND) $(HELM)
+local-dev: $(KUBECTL) $(KIND) $(HELM)
 	@$(INFO) Setting up local development environment
 	@set -e; \
 	if ! $(KIND) get clusters | grep -q "^uxp-dev$$"; then \
 		$(KIND) create cluster --name uxp-dev; \
 	fi; \
-	docker pull xpkg.upbound.io/upbound/crossplane:$(CROSSPLANE_TAG); \
-	$(KIND) load docker-image --name uxp-dev xpkg.upbound.io/upbound/crossplane:$(CROSSPLANE_TAG); \
-	docker pull xpkg.upbound.io/upbound-dev/controller-manager:$(CONTROLLER_MANAGER_TAG); \
-	$(KIND) load docker-image --name uxp-dev xpkg.upbound.io/upbound-dev/controller-manager:$(CONTROLLER_MANAGER_TAG); \
-	HELM_SETS="upbound.manager.image.pullPolicy=Never,upbound.manager.image.tag=$$CONTROLLER_MANAGER_TAG,upbound.manager.args={--debug}"; \
+	$(KUBECTL) create namespace crossplane-system --dry-run=client -o yaml | $(KUBECTL) apply -f - ; \
+	$(KUBECTL) -n crossplane-system create secret docker-registry uxpv2-pull --docker-server=xpkg.upbound.io --docker-username=4679fd3d-6f61-43ad-8518-809087df1c49 --docker-password=eyJhbGciOiJSUzI1NiIsImtpZCI6IlRfIiwidHlwIjoiSldUIn0.eyJhdWQiOiJ1cGJvdW5kLmlvIiwiZXhwIjoyMDYzMjY0MDA1LCJqdGkiOiI0Njc5ZmQzZC02ZjYxLTQzYWQtODUxOC04MDkwODdkZjFjNDkiLCJpc3MiOiJodHRwczovL2FwaS51cGJvdW5kLmlvL3YxIiwic3ViIjoicm9ib3R8NDM5NDM2MTAtZjc2MC00MTEzLTg4NjktYzg2Yzg1NDJiZTU5In0.snmUdFdyyzJvCK_2DFz_v6TzOK5j5pkgnOG0zs2kweYKEFkpv-dt1D8GWQ8janqwRX2GVoONlQzkU-kWXIF87KMnPcwIxm9DAeqfGVFGXCFd1ubKZz-jjEvOFMbl1brjUyoiL78FVF4site1PxiNxb-b0celkPcps6aWi1a-515iyCr5H9I1QAUfTPiJQJkdeX25H-3tUVwFYwUh8_vlo4zBt9BDHoxzQ69k9B8VEeowTvi5Y-np_69-y2FcdYQH9WnlH7O6jZf2-grT7GPZS_mti_vAt8fJhxnoj3_pmZ-Tua_VkREPs0sI0NCjy9wCK3ynM9IbXIAyNT6mH_saPA --dry-run=client -o yaml | $(KUBECTL) apply -f - ; \
+	HELM_SETS="upbound.manager.args={--debug},upbound.manager.imagePullSecrets[0].name=uxpv2-pull,webui.imagePullSecrets[0].name=uxpv2-pull,apollo.imagePullSecrets[0].name=uxpv2-pull"; \
 	if [ -n "$$UXP_LICENSE_KEY" ]; then \
 		HELM_SETS="$$HELM_SETS,upbound.licenseKey=$$UXP_LICENSE_KEY"; \
 	fi; \
-	$(HELM) upgrade --install crossplane --namespace crossplane-system --create-namespace ./cluster/charts/crossplane \
+	$(HELM) upgrade --install crossplane --namespace crossplane-system ./cluster/charts/crossplane \
 		--set "$$HELM_SETS"
 	@$(OK) Local development environment ready
 
