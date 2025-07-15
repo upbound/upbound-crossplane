@@ -8,3 +8,12 @@ metadata:
 data:
   crossplaneVersion: {{ (trimPrefix "v" .Values.image.tag) }}
   uxpVersion: {{ .Chart.Version }}
+  {{- range .Chart.Dependencies }}
+    {{- if eq .Alias "upbound" }}
+  upboundControllerManagerVersion: {{ .Version | quote }}
+    {{- else if eq .Alias "webui" }}
+  webUIVersion: {{ .Version | quote }}
+    {{- else if eq .Alias "apollo" }}
+  apolloVersion: {{ .Version | quote }}
+    {{- end }}
+  {{- end }}
