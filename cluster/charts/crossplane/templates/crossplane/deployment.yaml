@@ -143,6 +143,7 @@ spec:
         args:
         - core
         - start
+        - --package-runtime=Provider=External
         {{- range $arg := .Values.args }}
         - {{ $arg }}
         {{- end }}

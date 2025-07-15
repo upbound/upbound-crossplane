@@ -1,12 +1,12 @@
 dependencies:
 - name: uxp-controller-manager
   repository: oci://xpkg.upbound.io/upbound-dev
-  version: 0.1.0-rc.0.37.gbf82b82
+  version: 0.1.0-rc.0.48.g70a8efb
 - name: uxp-webui
   repository: oci://xpkg.upbound.io/upbound-dev
   version: 0.0.0-6723.g531bb900c
 - name: uxp-apollo
   repository: oci://xpkg.upbound.io/upbound-dev
   version: 0.0.0-79.g397ec26
-digest: sha256:13784407337a3506c8827e813c404e51908d58df71031c171ad78aa8aa0173bd
-generated: "2025-07-15T09:14:21.684497+03:00"
+digest: sha256:5c7740b85246b702876daa46e165746f92f1c8337df5e7e89d94318e13a05ddd
+generated: "2025-07-15T16:10:19.927134+03:00"
