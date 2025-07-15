@@ -114,6 +114,7 @@ helm.dep: generate-chart
 # local environment, not a container. The kind cluster will keep running until
 # you run the local-dev.down target. Run local-dev again to rebuild the controller manager and restart
 # the kind cluster with the new build. Uses random version suffix to ensure existing pods are replaced.
+# Make sure you set the UPBOUND_PULLBOT_ID and UPBOUND_PULLBOT_TOKEN environment variables
 local-dev: $(KUBECTL) $(KIND) $(HELM)
 	@$(INFO) Setting up local development environment
 	@set -e; \
@@ -121,7 +122,7 @@ local-dev: $(KUBECTL) $(KIND) $(HELM)
 		$(KIND) create cluster --name uxp-dev; \
 	fi; \
 	$(KUBECTL) create namespace crossplane-system --dry-run=client -o yaml | $(KUBECTL) apply -f - ; \
-	$(KUBECTL) -n crossplane-system create secret docker-registry uxpv2-pull --docker-server=xpkg.upbound.io --docker-username=4679fd3d-6f61-43ad-8518-809087df1c49 --docker-password=eyJhbGciOiJSUzI1NiIsImtpZCI6IlRfIiwidHlwIjoiSldUIn0.eyJhdWQiOiJ1cGJvdW5kLmlvIiwiZXhwIjoyMDYzMjY0MDA1LCJqdGkiOiI0Njc5ZmQzZC02ZjYxLTQzYWQtODUxOC04MDkwODdkZjFjNDkiLCJpc3MiOiJodHRwczovL2FwaS51cGJvdW5kLmlvL3YxIiwic3ViIjoicm9ib3R8NDM5NDM2MTAtZjc2MC00MTEzLTg4NjktYzg2Yzg1NDJiZTU5In0.snmUdFdyyzJvCK_2DFz_v6TzOK5j5pkgnOG0zs2kweYKEFkpv-dt1D8GWQ8janqwRX2GVoONlQzkU-kWXIF87KMnPcwIxm9DAeqfGVFGXCFd1ubKZz-jjEvOFMbl1brjUyoiL78FVF4site1PxiNxb-b0celkPcps6aWi1a-515iyCr5H9I1QAUfTPiJQJkdeX25H-3tUVwFYwUh8_vlo4zBt9BDHoxzQ69k9B8VEeowTvi5Y-np_69-y2FcdYQH9WnlH7O6jZf2-grT7GPZS_mti_vAt8fJhxnoj3_pmZ-Tua_VkREPs0sI0NCjy9wCK3ynM9IbXIAyNT6mH_saPA --dry-run=client -o yaml | $(KUBECTL) apply -f - ; \
+	$(KUBECTL) -n crossplane-system create secret docker-registry uxpv2-pull --docker-server=xpkg.upbound.io --docker-username=$$UPBOUND_PULLBOT_ID --docker-password=$$UPBOUND_PULLBOT_TOKEN --dry-run=client -o yaml | $(KUBECTL) apply -f - ; \
 	HELM_SETS="upbound.manager.args={--debug},upbound.manager.imagePullSecrets[0].name=uxpv2-pull,webui.imagePullSecrets[0].name=uxpv2-pull,apollo.imagePullSecrets[0].name=uxpv2-pull"; \
 	if [ -n "$$UXP_LICENSE_KEY" ]; then \
 		HELM_SETS="$$HELM_SETS,upbound.licenseKey=$$UXP_LICENSE_KEY"; \
