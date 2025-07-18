@@ -43,7 +43,7 @@ dependencies:
     repository: oci://xpkg.upbound.io/upbound-dev
     alias: upbound
   - name: uxp-webui
-    version: 0.0.0-6723.g531bb900c
+    version: 0.0.0-6748.g90e89920f
     repository: oci://xpkg.upbound.io/upbound-dev
     alias: webui
     condition: webui.enabled
