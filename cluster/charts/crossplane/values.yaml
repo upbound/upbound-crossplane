@@ -11,7 +11,7 @@ image:
   # -- Repository for the Crossplane pod image.
   repository: xpkg.upbound.io/upbound/crossplane
   # -- The Crossplane image tag. Defaults to the value of `appVersion` in `Chart.yaml`.
-  tag: "v2.0.0-rc.0.90.g0a3358f21"
+  tag: "v2.0.0-rc.0.179.g12ea48f4a"
   # -- The image pull policy used for Crossplane and RBAC Manager pods.
   pullPolicy: IfNotPresent
   # -- Do not use the {{ .image.tag }} value to compute the image uri.
