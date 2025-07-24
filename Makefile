@@ -86,18 +86,22 @@ generate-chart: $(YQ) crossplane helm.lint
 	@$(INFO) Generating Chart from Upbound Crossplane
 	@rm -f $(HELM_CHARTS_DIR)/crossplane/values.yaml
 	@cp -a $(WORK_DIR)/crossplane/cluster/charts/crossplane/values.yaml $(HELM_CHARTS_DIR)/crossplane/values.yaml
-	@# Note(turkenh): We need to patch the deployment.yaml file to add the --package-runtime flag.
+	@# Note(turkenh): We need to patch the deployment.yaml file to add the UXP specific flags.
 	@# Since deployment.yaml is a Helm template with {{ }} syntax, we can't use YQ (it would fail to parse).
 	@# We use sed with pattern matching to inject after "- core" and "- start" args. While sed could fail
 	@# silently if the pattern changes, we have a grep check below to ensure the injection succeeded.
 	@# Any pattern changes in upstream would be caught either by the grep check or during PR review since
 	@# the generated chart is also committed to the repository.
-	@sed -i -e '/^        - core$$/{n' -e '/^        - start$$/a\        - --package-runtime=Provider=External' -e '}' $(HELM_CHARTS_DIR)/crossplane/templates/crossplane/deployment.yaml
+	@sed -i -e '/^        - core$$/{n' -e '/^        - start$$/a\        - --enable-operations' -e '/^        - start$$/a\        - --package-runtime=Provider=External' -e '}' $(HELM_CHARTS_DIR)/crossplane/templates/crossplane/deployment.yaml
+	@if ! grep -q -- '--enable-operations' $(HELM_CHARTS_DIR)/crossplane/templates/crossplane/deployment.yaml; then \
+		echo "ERROR: Failed to inject --enable-operations arg"; \
+		exit 1; \
+	fi
 	@if ! grep -q -- '--package-runtime=Provider=External' $(HELM_CHARTS_DIR)/crossplane/templates/crossplane/deployment.yaml; then \
 		echo "ERROR: Failed to inject --package-runtime arg"; \
 		exit 1; \
 	fi
-	@echo "Successfully injected arg"
+	@echo "Successfully injected args"
 	@# Note(turkenh): YQ strips out the empty lines in the values.yaml file, which is not ideal: https://github.com/mikefarah/yq/issues/515
 	@# After spending some time, I couldn't find a better/lightweight alternative. Tried dasel and dyff but no luck.
 	@# We may still chose using sed just to be consistent with the above (where YQ cannot work), but I kept yq since it
