@@ -124,11 +124,13 @@ local-dev: $(KUBECTL) $(KIND) $(HELM)
 	$(KUBECTL) create namespace crossplane-system --dry-run=client -o yaml | $(KUBECTL) apply -f - ; \
 	$(KUBECTL) -n crossplane-system create secret docker-registry uxpv2-pull --docker-server=xpkg.upbound.io --docker-username=$$UPBOUND_PULLBOT_ID --docker-password=$$UPBOUND_PULLBOT_TOKEN --dry-run=client -o yaml | $(KUBECTL) apply -f - ; \
 	HELM_SETS="upbound.manager.args={--debug},upbound.manager.imagePullSecrets[0].name=uxpv2-pull,webui.imagePullSecrets[0].name=uxpv2-pull,apollo.imagePullSecrets[0].name=uxpv2-pull"; \
-	if [ -n "$$UXP_LICENSE_KEY" ]; then \
-		HELM_SETS="$$HELM_SETS,upbound.licenseKey=$$UXP_LICENSE_KEY"; \
-	fi; \
 	$(HELM) upgrade --install crossplane --namespace crossplane-system ./cluster/charts/crossplane \
-		--set "$$HELM_SETS"
+		--set "$$HELM_SETS"; \
+	if [ -n "$$UXP_LICENSE_FILE" ]; then \
+		$(KUBECTL) -n crossplane-system wait deployment upbound-controller-manager --for=condition=Available; \
+		$(KUBECTL) create secret generic uxp-license --namespace crossplane-system --from-file=license.json=$$UXP_LICENSE_FILE -o yaml --dry-run=client | $(KUBECTL) apply -f - ; \
+		$(KUBECTL) patch license uxp --type merge --patch '{"spec":{"secretRef":{"name":"uxp-license","namespace":"crossplane-system","key":"license.json"}}}'; \
+	fi
 	@$(OK) Local development environment ready
 
 # local-dev.down deletes the kind cluster created by the local-dev target.
