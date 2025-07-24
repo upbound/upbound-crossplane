@@ -86,18 +86,22 @@ generate-chart: $(YQ) crossplane helm.lint
 	@$(INFO) Generating Chart from Upbound Crossplane
 	@rm -f $(HELM_CHARTS_DIR)/crossplane/values.yaml
 	@cp -a $(WORK_DIR)/crossplane/cluster/charts/crossplane/values.yaml $(HELM_CHARTS_DIR)/crossplane/values.yaml
-	@# Note(turkenh): We need to patch the deployment.yaml file to add the --package-runtime flag.
+	@# Note(turkenh): We need to patch the deployment.yaml file to add the UXP specific flags.
 	@# Since deployment.yaml is a Helm template with {{ }} syntax, we can't use YQ (it would fail to parse).
 	@# We use sed with pattern matching to inject after "- core" and "- start" args. While sed could fail
 	@# silently if the pattern changes, we have a grep check below to ensure the injection succeeded.
 	@# Any pattern changes in upstream would be caught either by the grep check or during PR review since
 	@# the generated chart is also committed to the repository.
-	@sed -i -e '/^        - core$$/{n' -e '/^        - start$$/a\        - --package-runtime=Provider=External' -e '}' $(HELM_CHARTS_DIR)/crossplane/templates/crossplane/deployment.yaml
+	@sed -i -e '/^        - core$$/{n' -e '/^        - start$$/a\        - --enable-operations' -e '/^        - start$$/a\        - --package-runtime=Provider=External' -e '}' $(HELM_CHARTS_DIR)/crossplane/templates/crossplane/deployment.yaml
+	@if ! grep -q -- '--enable-operations' $(HELM_CHARTS_DIR)/crossplane/templates/crossplane/deployment.yaml; then \
+		echo "ERROR: Failed to inject --enable-operations arg"; \
+		exit 1; \
+	fi
 	@if ! grep -q -- '--package-runtime=Provider=External' $(HELM_CHARTS_DIR)/crossplane/templates/crossplane/deployment.yaml; then \
 		echo "ERROR: Failed to inject --package-runtime arg"; \
 		exit 1; \
 	fi
-	@echo "Successfully injected arg"
+	@echo "Successfully injected args"
 	@# Note(turkenh): YQ strips out the empty lines in the values.yaml file, which is not ideal: https://github.com/mikefarah/yq/issues/515
 	@# After spending some time, I couldn't find a better/lightweight alternative. Tried dasel and dyff but no luck.
 	@# We may still chose using sed just to be consistent with the above (where YQ cannot work), but I kept yq since it
@@ -124,11 +128,13 @@ local-dev: $(KUBECTL) $(KIND) $(HELM)
 	$(KUBECTL) create namespace crossplane-system --dry-run=client -o yaml | $(KUBECTL) apply -f - ; \
 	$(KUBECTL) -n crossplane-system create secret docker-registry uxpv2-pull --docker-server=xpkg.upbound.io --docker-username=$$UPBOUND_PULLBOT_ID --docker-password=$$UPBOUND_PULLBOT_TOKEN --dry-run=client -o yaml | $(KUBECTL) apply -f - ; \
 	HELM_SETS="upbound.manager.args={--debug},upbound.manager.imagePullSecrets[0].name=uxpv2-pull,webui.imagePullSecrets[0].name=uxpv2-pull,apollo.imagePullSecrets[0].name=uxpv2-pull"; \
-	if [ -n "$$UXP_LICENSE_KEY" ]; then \
-		HELM_SETS="$$HELM_SETS,upbound.licenseKey=$$UXP_LICENSE_KEY"; \
-	fi; \
 	$(HELM) upgrade --install crossplane --namespace crossplane-system ./cluster/charts/crossplane \
-		--set "$$HELM_SETS"
+		--set "$$HELM_SETS"; \
+	if [ -n "$$UXP_LICENSE_FILE" ]; then \
+		$(KUBECTL) -n crossplane-system wait deployment upbound-controller-manager --for=condition=Available; \
+		$(KUBECTL) create secret generic uxp-license --namespace crossplane-system --from-file=license.json=$$UXP_LICENSE_FILE -o yaml --dry-run=client | $(KUBECTL) apply -f - ; \
+		$(KUBECTL) patch license uxp --type merge --patch '{"spec":{"secretRef":{"name":"uxp-license","namespace":"crossplane-system","key":"license.json"}}}'; \
+	fi
 	@$(OK) Local development environment ready
 
 # local-dev.down deletes the kind cluster created by the local-dev target.
