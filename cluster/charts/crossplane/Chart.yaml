@@ -43,12 +43,12 @@ dependencies:
     repository: oci://xpkg.upbound.io/upbound-dev
     alias: upbound
   - name: uxp-webui
-    version: 0.0.0-6748.g90e89920f
+    version: 0.0.0-6777.g0d39dfa29
     repository: oci://xpkg.upbound.io/upbound-dev
     alias: webui
     condition: webui.enabled
   - name: uxp-apollo
-    version: 0.0.0-98.gc01cf00
+    version: 0.0.0-103.g942faaa
     repository: oci://xpkg.upbound.io/upbound-dev
     alias: apollo
     condition: webui.enabled
