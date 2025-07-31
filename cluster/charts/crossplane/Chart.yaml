@@ -40,15 +40,15 @@ keywords:
 dependencies:
   - name: uxp-controller-manager
     version: 0.1.0-rc.0.190.gf248483
-    repository: oci://xpkg.upbound.io/upbound-dev
+    repository: oci://xpkg.upbound.io/upbound
     alias: upbound
   - name: uxp-webui
     version: 0.0.0-6801.g0045b5b62
-    repository: oci://xpkg.upbound.io/upbound-dev
+    repository: oci://xpkg.upbound.io/upbound
     alias: webui
     condition: webui.enabled
   - name: uxp-apollo
     version: 0.0.0-106.ga05b2a0
-    repository: oci://xpkg.upbound.io/upbound-dev
+    repository: oci://xpkg.upbound.io/upbound
     alias: apollo
     condition: webui.enabled
