@@ -39,16 +39,16 @@ keywords:
   - eks
 dependencies:
   - name: uxp-controller-manager
-    version: 0.1.0-rc.0.104.g965fa03
+    version: 0.1.0-rc.0.190.gf248483
     repository: oci://xpkg.upbound.io/upbound-dev
     alias: upbound
   - name: uxp-webui
-    version: 0.0.0-6777.g0d39dfa29
+    version: 0.0.0-6801.g0045b5b62
     repository: oci://xpkg.upbound.io/upbound-dev
     alias: webui
     condition: webui.enabled
   - name: uxp-apollo
-    version: 0.0.0-103.g942faaa
+    version: 0.0.0-106.ga05b2a0
     repository: oci://xpkg.upbound.io/upbound-dev
     alias: apollo
     condition: webui.enabled

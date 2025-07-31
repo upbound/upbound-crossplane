@@ -16,7 +16,7 @@ PLATFORMS ?= linux_amd64 linux_arm64
 # Versions
 
 CROSSPLANE_REPO := https://github.com/upbound/crossplane.git
-CROSSPLANE_TAG := v2.0.0-rc.0.198.g19aeeca69
+CROSSPLANE_TAG := v2.0.0-rc.0.268.ga21c81264
 # ====================================================================================
 # Setup Kubernetes tools
 KIND_VERSION = v0.29.0
@@ -92,12 +92,12 @@ generate-chart: $(YQ) crossplane helm.lint
 	@# silently if the pattern changes, we have a grep check below to ensure the injection succeeded.
 	@# Any pattern changes in upstream would be caught either by the grep check or during PR review since
 	@# the generated chart is also committed to the repository.
-	@sed -i -e '/^        - core$$/{n' -e '/^        - start$$/a\        - --enable-operations' -e '/^        - start$$/a\        - --package-runtime=Provider=External' -e '}' $(HELM_CHARTS_DIR)/crossplane/templates/crossplane/deployment.yaml
+	@sed -i -e '/^        - core$$/{n' -e '/^        - start$$/a\        - --enable-operations' -e '/^        - start$$/a\        - --package-runtime=External' -e '}' $(HELM_CHARTS_DIR)/crossplane/templates/crossplane/deployment.yaml
 	@if ! grep -q -- '--enable-operations' $(HELM_CHARTS_DIR)/crossplane/templates/crossplane/deployment.yaml; then \
 		echo "ERROR: Failed to inject --enable-operations arg"; \
 		exit 1; \
 	fi
-	@if ! grep -q -- '--package-runtime=Provider=External' $(HELM_CHARTS_DIR)/crossplane/templates/crossplane/deployment.yaml; then \
+	@if ! grep -q -- '--package-runtime=External' $(HELM_CHARTS_DIR)/crossplane/templates/crossplane/deployment.yaml; then \
 		echo "ERROR: Failed to inject --package-runtime arg"; \
 		exit 1; \
 	fi
@@ -121,6 +121,10 @@ helm.dep: generate-chart
 # Make sure you set the UPBOUND_PULLBOT_ID and UPBOUND_PULLBOT_TOKEN environment variables
 local-dev: $(KUBECTL) $(KIND) $(HELM)
 	@$(INFO) Setting up local development environment
+	@if [ -z "$$UPBOUND_PULLBOT_ID" ] || [ -z "$$UPBOUND_PULLBOT_TOKEN" ]; then \
+		echo "ERROR: UPBOUND_PULLBOT_ID and UPBOUND_PULLBOT_TOKEN environment variables must be set"; \
+		exit 1; \
+	fi
 	@set -e; \
 	if ! $(KIND) get clusters | grep -q "^uxp-dev$$"; then \
 		$(KIND) create cluster --name uxp-dev; \
