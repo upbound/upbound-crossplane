@@ -16,7 +16,7 @@ PLATFORMS ?= linux_amd64 linux_arm64
 # Versions
 
 CROSSPLANE_REPO := https://github.com/upbound/crossplane.git
-CROSSPLANE_TAG := v2.0.0-rc.0.198.g19aeeca69
+CROSSPLANE_TAG := v2.0.0-rc.0.268.ga21c81264
 # ====================================================================================
 # Setup Kubernetes tools
 KIND_VERSION = v0.29.0
