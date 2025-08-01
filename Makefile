@@ -26,14 +26,7 @@ USE_HELM3 = true
 # ====================================================================================
 # Setup Helm
 
-# Note(turkenh): The OCI image published will be $(HELM_OCI_URL)/crossplane:$(VERSION). So,
-# be careful not to change HELM_OCI_URL to something that could override an existing image.
-# For example, we should not set it to xpkg.upbound.io/upbound, otherwise it will override the
-# existing crossplane image at that location. If we ever need to publish the chart as OCI image
-# at some point, we should consider using a different URL like xpkg.upbound.io/upbound-charts.
-# For now, we are using the xpkg.upbound.io/upbound-dev as a stop gap solution until we start
-# publishing to the public upbound-stable helm repository.
-HELM_OCI_URL = xpkg.upbound.io/upbound-dev
+HELM_OCI_URL = xpkg.upbound.io/upbound
 HELM_CHARTS = crossplane
 HELM_DOCS_ENABLED = true
 HELM_VALUES_TEMPLATE_SKIPPED = true
