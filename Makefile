@@ -26,12 +26,15 @@ USE_HELM3 = true
 # ====================================================================================
 # Setup Helm
 
+HELM_BASE_URL = https://charts.upbound.io
 HELM_OCI_URL = xpkg.upbound.io/upbound
 HELM_CHARTS = crossplane
+HELM_S3_BUCKET = public-upbound.charts
 HELM_DOCS_ENABLED = true
 HELM_VALUES_TEMPLATE_SKIPPED = true
 HELM_CHART_LINT_STRICT = false
 -include makelib/helmoci.mk
+-include build/makelib/helm.mk
 
 # ====================================================================================
 # Targets

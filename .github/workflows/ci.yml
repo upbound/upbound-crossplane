@@ -11,6 +11,7 @@ on:
 env:
   DOCKER_BUILDX_VERSION: 'v0.8.2'
   UPBOUND_MARKETPLACE_PUSH_ROBOT_USR: ${{ secrets.UPBOUND_MARKETPLACE_PUSH_ROBOT_USR }}
+  AWS_USR: ${{ secrets.AWS_USR }}
 
 
 jobs:
@@ -111,8 +112,14 @@ jobs:
           BUILD_ARGS: "--load"
 
       - name: Publish Artifacts
-        if: (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release-'))
+        if: env.AWS_USR != '' && env.XPKG_ACCESS_ID != '' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release-'))
         run: make publish BRANCH_NAME=${GITHUB_REF##*/}
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_USR }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_PSW }}
+          AWS_DEFAULT_REGION: us-east-1
+          GIT_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
 
       - name: Publish Artifacts to GitHub
         uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874 # v4
