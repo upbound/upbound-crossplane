@@ -33,8 +33,8 @@ HELM_S3_BUCKET = public-upbound.charts
 HELM_DOCS_ENABLED = true
 HELM_VALUES_TEMPLATE_SKIPPED = true
 HELM_CHART_LINT_STRICT = false
--include makelib/helmoci.mk
 -include build/makelib/helm.mk
+-include makelib/helmoci.mk
 
 # ====================================================================================
 # Targets
