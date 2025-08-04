@@ -12,6 +12,10 @@ PLATFORMS ?= linux_amd64 linux_arm64
 # to run a target until the include commands succeeded.
 -include build/makelib/common.mk
 
+# Define GOHOST for helm-docs installation (from golang.mk but without Go targets)
+GO ?= go
+GOHOST := GOOS=$(HOSTOS) GOARCH=$(TARGETARCH) $(GO)
+
 # ====================================================================================
 # Versions
 
