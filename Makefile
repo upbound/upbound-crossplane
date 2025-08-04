@@ -30,7 +30,7 @@ HELM_BASE_URL = https://charts.upbound.io
 HELM_OCI_URL = xpkg.upbound.io/upbound
 HELM_CHARTS = crossplane
 HELM_S3_BUCKET = public-upbound.charts
-HELM_DOCS_ENABLED = true
+HELM_DOCS_ENABLED = false
 HELM_VALUES_TEMPLATE_SKIPPED = true
 HELM_CHART_LINT_STRICT = false
 -include build/makelib/helm.mk
