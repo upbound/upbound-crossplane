@@ -130,6 +130,16 @@ jobs:
           AWS_DEFAULT_REGION: us-east-1
           GIT_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Promote Artifacts in S3 and Marketplace
+        if: env.AWS_USR != '' && env.UPBOUND_MARKETPLACE_PUSH_ROBOT_USR != '' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release-'))
+        run: make -j2 promote
+        env:
+          BRANCH_NAME: main
+          CHANNEL: main
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_USR }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_PSW }}
+          AWS_DEFAULT_REGION: us-east-1
+
 
       - name: Publish Artifacts to GitHub
         uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874 # v4
