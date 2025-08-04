@@ -122,7 +122,7 @@ jobs:
           BUILD_ARGS: "--load"
 
       - name: Publish Artifacts
-        if: env.AWS_USR != '' && env.XPKG_ACCESS_ID != '' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release-'))
+        if: env.AWS_USR != '' && env.UPBOUND_MARKETPLACE_PUSH_ROBOT_USR != '' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release-'))
         run: make publish BRANCH_NAME=${GITHUB_REF##*/}
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_USR }}
