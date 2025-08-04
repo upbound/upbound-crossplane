@@ -12,6 +12,10 @@ PLATFORMS ?= linux_amd64 linux_arm64
 # to run a target until the include commands succeeded.
 -include build/makelib/common.mk
 
+# Define GOHOST for helm-docs installation (from golang.mk but without Go targets)
+GO ?= go
+GOHOST := GOOS=$(HOSTOS) GOARCH=$(TARGETARCH) $(GO)
+
 # ====================================================================================
 # Versions
 
@@ -26,11 +30,14 @@ USE_HELM3 = true
 # ====================================================================================
 # Setup Helm
 
+HELM_BASE_URL = https://charts.upbound.io
 HELM_OCI_URL = xpkg.upbound.io/upbound
 HELM_CHARTS = crossplane
-HELM_DOCS_ENABLED = true
+HELM_S3_BUCKET = public-upbound.charts
+HELM_DOCS_ENABLED = false
 HELM_VALUES_TEMPLATE_SKIPPED = true
 HELM_CHART_LINT_STRICT = false
+-include build/makelib/helm.mk
 -include makelib/helmoci.mk
 
 # ====================================================================================
