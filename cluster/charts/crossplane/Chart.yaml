@@ -39,7 +39,7 @@ keywords:
   - eks
 dependencies:
   - name: uxp-controller-manager
-    version: 0.1.0-rc.0.192.g143725c
+    version: 0.1.0-rc.0.209.gfe6962e
     repository: oci://xpkg.upbound.io/upbound
     alias: upbound
   - name: uxp-webui
