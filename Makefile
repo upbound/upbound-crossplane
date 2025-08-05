@@ -20,7 +20,7 @@ GOHOST := GOOS=$(HOSTOS) GOARCH=$(TARGETARCH) $(GO)
 # Versions
 
 CROSSPLANE_REPO := https://github.com/upbound/crossplane.git
-CROSSPLANE_TAG := v2.0.0-rc.0.268.ga21c81264
+CROSSPLANE_TAG := v2.0.0-rc.0.302.g1c5774d68
 # ====================================================================================
 # Setup Kubernetes tools
 KIND_VERSION = v0.29.0
