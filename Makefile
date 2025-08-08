@@ -114,6 +114,7 @@ generate-chart: $(YQ) crossplane helm.lint
 	@# We may still chose using sed just to be consistent with the above (where YQ cannot work), but I kept yq since it
 	@# is more robust here.
 	@$(YQ) eval '.image.tag = "$(CROSSPLANE_TAG)"' -i $(HELM_CHARTS_DIR)/crossplane/values.yaml
+	@$(YQ) eval '.rbac.clusterAdmin = false' -i $(HELM_CHARTS_DIR)/crossplane/values.yaml
 	@$(OK) Generated Chart from Upbound Crossplane
 
 helm.dep: generate-chart
