@@ -17,12 +17,6 @@ GO ?= go
 GOHOST := GOOS=$(HOSTOS) GOARCH=$(TARGETARCH) $(GO)
 
 # ====================================================================================
-# Versions
-
-CROSSPLANE_REPO := https://github.com/upbound/crossplane.git
-CROSSPLANE_TAG := v2.0.0-up.1.rc.1
-
-# ====================================================================================
 # Setup Output
 
 S3_BUCKET ?= public-upbound.releases/crossplane
@@ -67,56 +61,6 @@ submodules:
 	@git submodule update --init --recursive
 
 GITCP_CMD_CROSSPLANE ?= git -C $(WORK_DIR)/crossplane
-# Extract commit from tag if it contains .g<commit> pattern, otherwise use tag as-is
-# Example: v2.0.0-rc.0.151.gfdc0c3a14 → fdc0c3a14
-# Example: v2.0.0-rc.0 → v2.0.0-rc.0
-CROSSPLANE_COMMIT := $(shell echo $(CROSSPLANE_TAG) | grep -oE '\.g[a-f0-9]+$$' | sed 's/\.g//' || echo $(CROSSPLANE_TAG))
-ifeq ($(CROSSPLANE_COMMIT),)
-	CROSSPLANE_COMMIT := $(CROSSPLANE_TAG)
-endif
-
-# TODO(turkenh): Avoid fetching the entire Crossplane repository every time by checking whether it is already checked out.
-crossplane:
-	@$(INFO) Fetching Crossplane chart $(CROSSPLANE_TAG)
-	@rm -rf $(WORK_DIR)/crossplane
-	@mkdir -p $(WORK_DIR)/crossplane
-	@$(GITCP_CMD_CROSSPLANE) init
-	@$(GITCP_CMD_CROSSPLANE) remote add origin $(CROSSPLANE_REPO) 2>/dev/null || true
-	@$(GITCP_CMD_CROSSPLANE) fetch origin
-	@$(GITCP_CMD_CROSSPLANE) checkout $(CROSSPLANE_COMMIT)
-	@mkdir -p $(HELM_CHARTS_DIR)/crossplane/templates/crossplane
-	@rm -f $(HELM_CHARTS_DIR)/crossplane/templates/crossplane/*
-	@cp -a $(WORK_DIR)/crossplane/cluster/charts/crossplane/templates/* $(HELM_CHARTS_DIR)/crossplane/templates/crossplane
-	@$(OK) Crossplane chart has been fetched
-
-generate-chart: $(YQ) crossplane helm.lint
-	@$(INFO) Generating Chart from Upbound Crossplane
-	@rm -f $(HELM_CHARTS_DIR)/crossplane/values.yaml
-	@cp -a $(WORK_DIR)/crossplane/cluster/charts/crossplane/values.yaml $(HELM_CHARTS_DIR)/crossplane/values.yaml
-	@# Note(turkenh): We need to patch the deployment.yaml file to add the UXP specific flags.
-	@# Since deployment.yaml is a Helm template with {{ }} syntax, we can't use YQ (it would fail to parse).
-	@# We use sed with pattern matching to inject after "- core" and "- start" args. While sed could fail
-	@# silently if the pattern changes, we have a grep check below to ensure the injection succeeded.
-	@# Any pattern changes in upstream would be caught either by the grep check or during PR review since
-	@# the generated chart is also committed to the repository.
-	@sed -i -e '/^        - core$$/{n' -e '/^        - start$$/a\        - --enable-operations' -e '/^        - start$$/a\        - --package-runtime=External' -e '}' $(HELM_CHARTS_DIR)/crossplane/templates/crossplane/deployment.yaml
-	@if ! grep -q -- '--enable-operations' $(HELM_CHARTS_DIR)/crossplane/templates/crossplane/deployment.yaml; then \
-		echo "ERROR: Failed to inject --enable-operations arg"; \
-		exit 1; \
-	fi
-	@if ! grep -q -- '--package-runtime=External' $(HELM_CHARTS_DIR)/crossplane/templates/crossplane/deployment.yaml; then \
-		echo "ERROR: Failed to inject --package-runtime arg"; \
-		exit 1; \
-	fi
-	@echo "Successfully injected args"
-	@# Note(turkenh): YQ strips out the empty lines in the values.yaml file, which is not ideal: https://github.com/mikefarah/yq/issues/515
-	@# After spending some time, I couldn't find a better/lightweight alternative. Tried dasel and dyff but no luck.
-	@# We may still chose using sed just to be consistent with the above (where YQ cannot work), but I kept yq since it
-	@# is more robust here.
-	@$(YQ) eval '.image.tag = "$(CROSSPLANE_TAG)"' -i $(HELM_CHARTS_DIR)/crossplane/values.yaml
-	@$(OK) Generated Chart from Upbound Crossplane
-
-helm.dep: generate-chart
 
 # ====================================================================================
 # Local Development
