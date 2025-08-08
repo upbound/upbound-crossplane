@@ -6,7 +6,7 @@ metadata:
   labels:
     {{- include "labels" . | nindent 4 }}
 data:
-  crossplaneVersion: {{ (trimPrefix "v" .Values.image.tag) }}
+  crossplaneVersion: {{ (trimPrefix "v" .Values.uxp.image.tag) }}
   uxpVersion: {{ .Chart.Version }}
   {{- range .Chart.Dependencies }}
     {{- if eq .Alias "upbound" }}

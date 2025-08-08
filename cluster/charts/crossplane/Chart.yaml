@@ -52,3 +52,7 @@ dependencies:
     repository: oci://xpkg.upbound.io/upbound
     alias: apollo
     condition: webui.enabled
+  - name: crossplane
+    version: 2.0.0-rc.1
+    repository: https://charts.crossplane.io/stable
+    alias: uxp
