@@ -177,3 +177,5 @@ extraVolumesCrossplane: {}
 extraVolumeMountsCrossplane: {}
 # -- To add arbitrary Kubernetes Objects during a Helm Install
 extraObjects: []
+rbac:
+  clusterAdmin: false
