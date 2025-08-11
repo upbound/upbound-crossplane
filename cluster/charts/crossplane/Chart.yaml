@@ -48,7 +48,7 @@ dependencies:
     alias: webui
     condition: webui.enabled
   - name: uxp-apollo
-    version: 0.0.0-110.g5127447
+    version: 0.1.0
     repository: oci://xpkg.upbound.io/upbound
     alias: apollo
     condition: webui.enabled
