@@ -49,10 +49,10 @@ Crossplane is a framework for building your own [control plane](https://docs.upb
    helm install crossplane --namespace crossplane-system --create-namespace upbound-stable/crossplane --devel
    ```
 
-   > [!NOTE]
-   > Helm requires the use of `--devel` flag for versions with suffixes, like `v2.0.1-up.1`. The Helm repository Upbound uses
-   > is the stable repository, so use of that flag is only a workaround. You will always get the latest stable version of
-   > Upbound Crossplane.
+> [!NOTE]
+> Helm requires the use of `--devel` flag for versions with suffixes, like `v2.0.1-up.1`. The Helm repository Upbound uses
+> is the stable repository, so use of that flag is only a workaround. You will always get the latest stable version of
+> Upbound Crossplane.
 
 ### Upgrade from upstream Crossplane
 
