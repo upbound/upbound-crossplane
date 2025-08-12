@@ -32,21 +32,21 @@ precedence is honored in semantic versioning. The `<components>` numeric
 identifier only corresponds to the version of components for its preceding
 `<major>`, `<minor>`, `<patch>` versions. There is no relationship between
 `<components>` versions across `<major>`, `<minor>`, `<patch>` versions (e.g.
-`v1.2.0-up.1` does not indicate any correspondence to components in
-`v1.3.0-up.1`).
+`v2.2.0-up.1` does not indicate any correspondence to components in
+`v2.3.0-up.1`).
 
-An example version string for a UXP release that embeds Crossplane `v1.3.0`
+An example version string for a UXP release that embeds Crossplane `v2.0.1`
 could be:
 
 ```
-v1.3.0-up.2
+v2.0.1-up.2
 ```
 
 Additional pre-release segments may be appended both before and after the
 `-up-<components>` segment. Any pre-release segments appended before will
-correspond to the embedded Crossplane version (e.g. `v1.4.0-rc.0-up.1`). Any
+correspond to the embedded Crossplane version (e.g. `v2.0.1-rc.0-up.1`). Any
 pre-release segments appended after will correspond to a pre-release version of
-UXP itself (e.g. `v1.4.0-up.1-uprc.0`). UXP pre-release release segments should
+UXP itself (e.g. `v2.0.1-up.1-uprc.0`). UXP pre-release release segments should
 use `up` prefixed identifiers (e.g. `uprc`). There should _never_ be both a
 Crossplane pre-release and UXP pre-release on the same version string (see
 [Guarantees section](#guarantees)).
@@ -57,15 +57,15 @@ The following terms are used throughout this document and are defined as
 follows:
 
 - **UXP Version**: the entire semantic version for a UXP release (e.g.
-  `v1.2.2-up.3`).
+  `v2.0.1-up.3`).
 - **Crossplane Version**: the version of Crossplane embedded in the UXP release
-  (e.g. `v1.2.2`).
+  (e.g. `v2.0.1`).
 - **Components Marker**: the version of the components surrounding upstream (or
   temporarily forked) Crossplane (e.g. `-up.3`).
 
 ## Guarantees
 
-![versioning-diagram](docs/media/versioning.png)
+![versioning-diagram](media/versioning.png)
 
 The UXP versioning strategy can be expressed through a series of guarantees,
 each of which are elaborated in the subsequent sections. The diagram above
