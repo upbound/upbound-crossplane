@@ -17,7 +17,7 @@ Crossplane is a framework for building your own [control plane](https://docs.upb
 
 ### Installation with the `up` CLI
 
-1. Install the [Upbound CLI][upbound-cli].
+1. Install the [Upbound CLI](https://docs.upbound.io/manuals/cli/overview).
 
    ```console
    curl -sL https://cli.upbound.io | sh
