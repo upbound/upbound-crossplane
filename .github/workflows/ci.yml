@@ -13,6 +13,7 @@ env:
   UPBOUND_MARKETPLACE_PUSH_ROBOT_USR: ${{ secrets.UPBOUND_MARKETPLACE_PUSH_ROBOT_USR }}
   AWS_USR: ${{ secrets.AWS_USR }}
   GO_VERSION: '1.24.3'
+  XPKG_SPACES_ARTIFACTS_ACCESS_ID: ${{ secrets.XPKG_SPACES_ARTIFACTS_ACCESS_ID }}
 
 jobs:
   detect-noop:
@@ -136,3 +137,39 @@ jobs:
         with:
           name: output
           path: _output/**
+
+  mirror-spaces-artifacts:
+    runs-on: ubuntu-22.04
+    needs: publish-artifacts
+    if: (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release-'))
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          submodules: true
+
+      - name: Fetch History
+        run: git fetch --prune --unshallow
+
+      - name: Set Crossplane Version
+        run: make get-versions > $GITHUB_ENV
+
+      - name: Setup Crane
+        uses: imjasonh/setup-crane@v0.4
+
+      - name: Login to Spaces Artifacts Registry
+        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # v3
+        if: env.XPKG_SPACES_ARTIFACTS_ACCESS_ID != ''
+        with:
+          registry: xpkg.upbound.io/spaces-artifacts
+          username: ${{ secrets.XPKG_SPACES_ARTIFACTS_ACCESS_ID }}
+          password: ${{ secrets.XPKG_SPACES_ARTIFACTS_TOKEN }}
+
+      - name: Copy Upbound Crossplane images to Spaces Artifacts Registry
+        if: env.XPKG_SPACES_ARTIFACTS_ACCESS_ID != ''
+        run: |
+          # the crossplane image, tag should have v prefix
+          crane cp xpkg.upbound.io/upbound/crossplane:${CROSSPLANE_VERSION} xpkg.upbound.io/spaces-artifacts/crossplane:${CROSSPLANE_VERSION}
+          # the helm chart, tag should NOT have v prefix
+          crane cp xpkg.upbound.io/upbound/crossplane:${HELM_CHART_VERSION} xpkg.upbound.io/spaces-artifacts/crossplane:${HELM_CHART_VERSION}

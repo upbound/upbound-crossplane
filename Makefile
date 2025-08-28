@@ -156,3 +156,7 @@ local-dev.down: $(KIND)
 	@$(OK) Local development environment removed
 
 .PHONY: crossplane submodules fallthrough
+
+get-versions:
+	@echo CROSSPLANE_VERSION=$(CROSSPLANE_TAG)
+	@echo HELM_CHART_VERSION=$(HELM_CHART_VERSION)
