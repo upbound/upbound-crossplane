@@ -2,7 +2,7 @@
 [![docs](https://img.shields.io/badge/📚-docs-blue)](https://docs.upbound.io/manuals/uxp/overview/)
 [![Slack](https://img.shields.io/badge/slack-upbound_crossplane-purple?logo=slack)](https://crossplane.slack.com/archives/C01TRKD4623)
 
-<a href="https://upbound.io/uxp">
+<a href="https://upbound.io/uxp-2">
     <img align="right" style="margin-left: 20px" src="docs/media/logo.png" width=200 />
 </a>
 
