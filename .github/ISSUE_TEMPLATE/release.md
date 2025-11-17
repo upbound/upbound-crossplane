@@ -31,7 +31,7 @@ according to the declared [schedule][uxp-schedule], you should have:
   - [ ] Update any reference to the old latest release to `vX.Y.Z-up.1`, such as `CROSSPLANE_TAG` and `CROSSPLANE_COMMIT` in the `Makefile`.
   - [ ] Update the dependencies in `cluster/charts/crossplane/Chart.yaml` to reference the latest versions available:
     - [uxp-webui](https://console.upbound.io/upbound/repositories/uxp-webui/versions)
-    - [uxp-controller-manager](https://console.upbound.io/upbound/repositories/uxp-controller-manager/versions)
+    - [uxp-controller-manager](https://console.upbound.io/upbound/repositories/controller-manager/versions)
     - [uxp-apollo](https://console.upbound.io/upbound/repositories/uxp-apollo/versions)
   - [ ] Run `make generate` to import any changes in the [upstream Helm chart][upstream-helm-chart].
 - [ ] Created the `release-X.Y` branch from `main` branch in [UXP][uxp].
