@@ -119,6 +119,8 @@ generate-chart: $(YQ) crossplane helm.lint
 
 helm.dep: generate-chart
 
+generate.init: generate-chart
+
 # ====================================================================================
 # Local Development
 
