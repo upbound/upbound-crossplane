@@ -20,7 +20,7 @@ GOHOST := GOOS=$(HOSTOS) GOARCH=$(TARGETARCH) $(GO)
 # Versions
 
 CROSSPLANE_REPO := https://github.com/upbound/crossplane.git
-CROSSPLANE_TAG := v2.1.0-up.1
+CROSSPLANE_TAG := v2.1.1-up.1
 
 # ====================================================================================
 # Setup Output
