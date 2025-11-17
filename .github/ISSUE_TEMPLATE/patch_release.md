@@ -30,9 +30,9 @@ according to the declared schedule, you should have:
 - [ ] Created and merged a PR for [upbound/upbound-crossplane][uxp] to either the `main` branch, if cutting a patch for the latest supported release, **taking care to label it `backport release-X.Y`**, or directly to the `release-X.Y` branch, if cutting a patch for an older supported release. With the following changes:
   - [ ] Update any reference to the old latest release to `vX.Y.Z-up.K`, such as `CROSSPLANE_TAG` and `CROSSPLANE_COMMIT` in the `Makefile`.
   - [ ] Update the dependencies in `cluster/charts/crossplane/Chart.yaml` to reference the latest versions available and supported:
-	  - [uxp-webui](https://console.upbound.io/upbound/repositories/uxp-webui/versions)
-	  - [uxp-controller-manager](https://console.upbound.io/upbound/repositories/uxp-controller-manager/versions)
-	  - [uxp-apollo](https://console.upbound.io/upbound/repositories/uxp-apollo/versions)
+    - [uxp-webui](https://console.upbound.io/upbound/repositories/uxp-webui/versions)
+    - [uxp-controller-manager](https://console.upbound.io/upbound/repositories/controller-manager/versions)
+    - [uxp-apollo](https://console.upbound.io/upbound/repositories/uxp-apollo/versions)
   - [ ] Run `make generate` to import any changes in the [upstream Helm chart][upstream-helm-chart].
 - [ ] Cut [UXP][uxp] `vX.Y.Z-up.K` release from the `release-X.Y` branch by:
   - [ ] Running the [Tag workflow][tag-uxp] on the `release-X.Y` branch with the proper release version, `vX.Y.Z-up.K`. Use `Release vX.Y.Z-up.K` as message (FYI: the format suggested is only for consistency, there is no actual dependency on it).
