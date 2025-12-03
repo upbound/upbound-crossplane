@@ -147,8 +147,6 @@ spec:
         args:
         - core
         - start
-        - --enable-operations
-        - --package-runtime=External
         {{- range $arg := .Values.args }}
         - {{ $arg }}
         {{- end }}
