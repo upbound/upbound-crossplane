@@ -20,7 +20,7 @@ GOHOST := GOOS=$(HOSTOS) GOARCH=$(TARGETARCH) $(GO)
 # Versions
 
 CROSSPLANE_REPO := https://github.com/upbound/crossplane.git
-CROSSPLANE_TAG := v2.1.1-up.1
+CROSSPLANE_TAG := v2.1.3-up.1
 
 # ====================================================================================
 # Setup Output
@@ -89,7 +89,7 @@ crossplane:
 	@cp -a $(WORK_DIR)/crossplane/cluster/charts/crossplane/templates/* $(HELM_CHARTS_DIR)/crossplane/templates/crossplane
 	@$(OK) Crossplane chart has been fetched
 
-generate-chart: $(YQ) crossplane helm.lint
+generate-chart: $(YQ) crossplane
 	@$(INFO) Generating Chart from Upbound Crossplane
 	@rm -f $(HELM_CHARTS_DIR)/crossplane/values.yaml
 	@cp -a $(WORK_DIR)/crossplane/cluster/charts/crossplane/values.yaml $(HELM_CHARTS_DIR)/crossplane/values.yaml
@@ -119,7 +119,7 @@ generate-chart: $(YQ) crossplane helm.lint
 
 helm.dep: generate-chart
 
-generate.init: generate-chart
+generate.init: generate-chart helm.lint
 
 # ====================================================================================
 # Local Development
