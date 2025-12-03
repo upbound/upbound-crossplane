@@ -38,7 +38,7 @@ according to the declared schedule, you should have:
 - [ ] Cut [UXP][uxp] `vX.Y.Z-up.K` release from the `release-X.Y` branch by:
   - [ ] Running the [Tag workflow][tag-uxp] on the `release-X.Y` branch with the proper release version, `vX.Y.Z-up.K`. Use `Release vX.Y.Z-up.K` as message (FYI: the format suggested is only for consistency, there is no actual dependency on it).
   - [ ] Running the [CI workflow][ci-uxp] on the `release-X.Y` branch to build and publish the latest tagged artifacts.
-  - [ ] Verify that the tagged build version exists on the [releases.upbound.io](https://releases.upbound.io/upbound-crossplane/) `build` channel, e.g. `build/release-X.Y/vX.Y.Z-up.K/...`
+  - [ ] Verify that the tagged build version exists on the [releases.upbound.io](https://releases.upbound.io/universal-crossplane/) `build` channel, e.g. `build/release-X.Y/vX.Y.Z-up.K/...`
 - [ ] Verify the produced helm chart available in the `build` channnel at `build/release-X.Y/vX.Y.Z-up.K/charts` by doing some sanity checks:
   - [ ] Installs on a cluster properly with `helm -n crossplane-system upgrade --install crossplane <path-to-chart.tgz> --create-namespace`.
   - [ ] Uses the correct image versions of `upbound/crossplane`, e.g. `kubectl -n upbound-system get pods -o yaml | grep image:`
