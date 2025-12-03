@@ -89,7 +89,7 @@ crossplane:
 	@cp -a $(WORK_DIR)/crossplane/cluster/charts/crossplane/templates/* $(HELM_CHARTS_DIR)/crossplane/templates/crossplane
 	@$(OK) Crossplane chart has been fetched
 
-generate-chart: $(YQ) crossplane helm.lint
+generate-chart: $(YQ) crossplane
 	@$(INFO) Generating Chart from Upbound Crossplane
 	@rm -f $(HELM_CHARTS_DIR)/crossplane/values.yaml
 	@cp -a $(WORK_DIR)/crossplane/cluster/charts/crossplane/values.yaml $(HELM_CHARTS_DIR)/crossplane/values.yaml
@@ -117,7 +117,9 @@ generate-chart: $(YQ) crossplane helm.lint
 	@$(YQ) eval '.rbac.clusterAdmin = false' -i $(HELM_CHARTS_DIR)/crossplane/values.yaml
 	@$(OK) Generated Chart from Upbound Crossplane
 
-helm.dep: generate-chart
+helm.dep: generate-chart helm.lint
+
+generate.init: generate-chart helm.lint
 
 # ====================================================================================
 # Local Development
