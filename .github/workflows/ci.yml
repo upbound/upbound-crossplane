@@ -7,6 +7,11 @@ on:
       - release-*
   pull_request: {}
   workflow_dispatch: {}
+  # NOTE(phisco): this means we'll pass secrets to prs from forks too, so might
+  # be risky. To mitigate the risk, we need to keep the setting "Approval for
+  # running fork pull request workflows from contributors" to "Require approval
+  # for all external contributors".
+  pull_request_target: {}
 
 env:
   DOCKER_BUILDX_VERSION: 'v0.8.2'
